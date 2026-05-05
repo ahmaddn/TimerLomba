@@ -52,10 +52,16 @@ class Timer {
         const m = Math.floor((this.remainingSeconds % 3600) / 60);
         const s = this.remainingSeconds % 60;
         const displayStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-        this.dom.querySelector('.time-display').textContent = displayStr;
         
-        const progress = ((this.totalSeconds - this.remainingSeconds) / this.totalSeconds) * 100;
-        this.dom.querySelector('.progress-bar').style.width = `${progress}%`;
+        // Update DOM if it exists in the current view
+        const display = this.dom.querySelector('.time-display');
+        if (display) display.textContent = displayStr;
+        
+        const bar = this.dom.querySelector('.progress-bar');
+        if (bar) {
+            const progress = ((this.totalSeconds - this.remainingSeconds) / this.totalSeconds) * 100;
+            bar.style.width = `${progress}%`;
+        }
     }
 
     toggle() {
@@ -67,17 +73,15 @@ class Timer {
         if (this.isRunning || this.remainingSeconds <= 0) return;
         this.isRunning = true;
         this.dom.classList.add('active-timer');
-        this.dom.querySelector('.play-icon').classList.add('hidden');
-        this.dom.querySelector('.pause-icon').classList.remove('hidden');
+        this.dom.querySelector('.play-icon')?.classList.add('hidden');
+        this.dom.querySelector('.pause-icon')?.classList.remove('hidden');
         
-        // Handle Start sounds immediately
         this.sounds.forEach(s => {
             if (s.audio) {
                 if (s.type === 'loop') {
                     s.audio.loop = true;
                     s.audio.play().catch(console.warn);
                 } else if (s.type === 'start' && s.time > 0) {
-                    // Start sound plays from t=0
                     s.audio.currentTime = 0;
                     s.audio.play().catch(console.warn);
                 }
@@ -88,7 +92,6 @@ class Timer {
             const elapsed = this.totalSeconds - this.remainingSeconds;
             this.remainingSeconds--;
             this.updateDisplay();
-            
             this.checkSounds(elapsed + 1);
 
             if (this.remainingSeconds <= 0) {
@@ -101,8 +104,8 @@ class Timer {
         this.isRunning = false;
         clearInterval(this.interval);
         this.dom.classList.remove('active-timer');
-        this.dom.querySelector('.play-icon').classList.remove('hidden');
-        this.dom.querySelector('.pause-icon').classList.add('hidden');
+        this.dom.querySelector('.play-icon')?.classList.remove('hidden');
+        this.dom.querySelector('.pause-icon')?.classList.add('hidden');
         
         this.sounds.forEach(s => {
             if (s.audio) s.audio.pause();
@@ -124,7 +127,6 @@ class Timer {
 
     complete() {
         this.pause();
-        // Stop all sounds on completion except final end triggers
         this.sounds.forEach(s => {
             if (s.audio && s.type !== 'end') {
                 s.audio.pause();
@@ -132,6 +134,12 @@ class Timer {
             }
         });
         this.checkSounds(this.totalSeconds, true);
+        
+        if (app.isAutoMode) {
+            setTimeout(() => {
+                app.startNextTimer(this.id);
+            }, 1500);
+        }
     }
 
     checkSounds(elapsed, isEnd = false) {
@@ -139,23 +147,17 @@ class Timer {
             if (s.type === 'loop') return;
             if (!s.audio) return;
 
-            // Logika MULAI: Bunyi dari awal (t=0) sampai detik ke-X (elapsed == time)
             if (s.type === 'start') {
                 if (elapsed >= s.time) {
-                    s.audio.pause(); // Berhenti di detik ke-X
+                    s.audio.pause();
                     s.audio.currentTime = 0;
                 }
             }
 
-            // Logika SELESAI: Bunyi dari sisa detik ke-X sampai habis (t=total)
             if (s.type === 'end') {
                 if (this.remainingSeconds === s.time) {
                     s.audio.currentTime = 0;
                     s.audio.play().catch(console.warn);
-                }
-                if (isEnd || this.remainingSeconds === 0) {
-                    // Optional: loop behavior during the end countdown? 
-                    // For now, it just starts at s.time.
                 }
             }
         });
@@ -176,26 +178,20 @@ class App {
         ];
         this.activeTimerForConfig = null;
         this.isAutoMode = localStorage.getItem('timerAutoMode') === 'true';
+        this.currentView = '';
+        
+        window.addEventListener('hashchange', () => this.handleRouting());
         this.init();
     }
 
     init() {
-        const list = document.querySelector('.timer-list');
-        const mode = list.getAttribute('data-mode');
-        
-        list.innerHTML = '';
-        this.timers.forEach(t => {
-            const isMatch = (mode == t.id) || (mode && t.title.toLowerCase() === mode.toLowerCase());
-            if (!mode || isMatch) {
-                list.appendChild(t.dom);
-            }
-        });
-
-        const addBtn = document.getElementById('add-new-timer-btn');
-        if (addBtn) {
-            addBtn.addEventListener('click', () => this.addNewTimer());
+        // Clean URL: Remove index.html if present
+        if (location.pathname.endsWith('index.html')) {
+            const cleanPath = location.pathname.replace('index.html', '');
+            window.history.replaceState(null, '', cleanPath + location.hash);
         }
 
+        // Auto Mode Toggle Sync
         const toggle = document.getElementById('auto-mode-toggle');
         if (toggle) {
             toggle.checked = this.isAutoMode;
@@ -205,14 +201,73 @@ class App {
             });
         }
 
-        if (localStorage.getItem('timerAutoStart') === 'true') {
-            localStorage.removeItem('timerAutoStart');
-            const timerToStart = mode ? (this.timers.find(t => t.id == mode) || this.timers[0]) : this.timers[0];
-            if (timerToStart) setTimeout(() => timerToStart.start(), 1000);
-        }
-
+        // Config buttons
         document.getElementById('add-sound-btn').addEventListener('click', () => this.addSoundRow());
         document.getElementById('save-config-btn').addEventListener('click', () => this.saveConfig());
+
+        // Initial Routing
+        if (!location.hash) location.hash = '#home';
+        else this.handleRouting();
+    }
+
+    handleRouting() {
+        const hash = location.hash.replace('#', '') || 'home';
+        this.renderView(hash);
+        
+        // Update tab active state
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        const activeTab = document.getElementById(`tab-${hash}`) || document.getElementById(`tab-focused`);
+        if (activeTab) activeTab.classList.add('active');
+
+        // Close config panel on route change
+        this.closeSettings();
+    }
+
+    renderView(viewName) {
+        const container = document.getElementById('view-container');
+        const headerToggle = document.getElementById('global-auto-toggle-wrapper');
+        
+        // Hide/Show Auto Toggle based on view
+        if (viewName === 'home' || viewName === 'petunjuk') headerToggle.style.visibility = 'hidden';
+        else headerToggle.style.visibility = 'visible';
+
+        if (viewName === 'home') {
+            container.innerHTML = document.getElementById('template-home').innerHTML;
+        } 
+        else if (viewName === 'petunjuk') {
+            container.innerHTML = document.getElementById('template-petunjuk').innerHTML;
+        }
+        else if (viewName === 'dashboard') {
+            container.innerHTML = document.getElementById('template-dashboard').innerHTML;
+            const list = document.getElementById('dashboard-timer-list');
+            this.timers.forEach(t => list.insertBefore(t.dom, document.getElementById('add-new-timer-btn')));
+            document.getElementById('add-new-timer-btn').addEventListener('click', () => this.addNewTimer());
+        }
+        else {
+            // Focused views (persiapan, lomba, evaluasi)
+            container.innerHTML = document.getElementById('template-focused').innerHTML;
+            const list = document.getElementById('focused-timer-list');
+            
+            const mapping = { 'persiapan': 1, 'lomba': 2, 'evaluasi': 3 };
+            const targetId = mapping[viewName];
+            
+            if (targetId) {
+                const timer = this.timers.find(t => t.id === targetId);
+                if (timer) {
+                    list.appendChild(timer.dom);
+                    // Check for auto-start
+                    if (localStorage.getItem('timerAutoStart') === 'true') {
+                        localStorage.removeItem('timerAutoStart');
+                        setTimeout(() => timer.start(), 1000);
+                    }
+                }
+            } else {
+                // Handle dynamic timers from dashboard if focused
+                const timer = this.timers.find(t => t.title.toLowerCase().replace(/\s+/g, '-') === viewName);
+                if (timer) list.appendChild(timer.dom);
+            }
+        }
+        this.currentView = viewName;
     }
 
     addNewTimer() {
@@ -224,33 +279,29 @@ class App {
         const newTimer = new Timer(newId, title, minutes);
         this.timers.push(newTimer);
         
-        const list = document.querySelector('.timer-list');
-        if (!list.getAttribute('data-mode')) {
-            list.appendChild(newTimer.dom);
+        if (this.currentView === 'dashboard') {
+            const list = document.getElementById('dashboard-timer-list');
+            list.insertBefore(newTimer.dom, document.getElementById('add-new-timer-btn'));
         }
     }
 
     startNextTimer(currentId) {
         const nextId = currentId + 1;
-        const list = document.querySelector('.timer-list');
-        const isDashboard = !list.getAttribute('data-mode');
+        const nextTimer = this.timers.find(t => t.id === nextId);
+        
+        if (!nextTimer) {
+            alert('Seluruh rangkaian timer selesai!');
+            return;
+        }
 
-        if (isDashboard) {
-            const nextTimer = this.timers.find(t => t.id === nextId);
-            if (nextTimer) nextTimer.start();
-            else alert('Seluruh rangkaian timer selesai!');
+        const viewMapping = { 1: 'persiapan', 2: 'lomba', 3: 'evaluasi' };
+        const nextView = viewMapping[nextId] || 'dashboard';
+
+        if (this.currentView === 'dashboard') {
+            nextTimer.start();
         } else {
-            const pages = {
-                1: 'lomba.html',
-                2: 'evaluasi.html'
-            };
-            
-            if (pages[currentId]) {
-                localStorage.setItem('timerAutoStart', 'true');
-                window.location.href = pages[currentId];
-            } else {
-                alert('Seluruh rangkaian timer selesai!');
-            }
+            localStorage.setItem('timerAutoStart', 'true');
+            location.hash = `#${nextView}`;
         }
     }
 
@@ -268,13 +319,14 @@ class App {
         const soundList = document.getElementById('sound-list');
         soundList.innerHTML = '';
         
-        if (timer.sounds.length === 0) {
-            this.addSoundRow();
-        } else {
-            timer.sounds.forEach(sound => this.addSoundRow(sound));
-        }
+        if (timer.sounds.length === 0) this.addSoundRow();
+        else timer.sounds.forEach(sound => this.addSoundRow(sound));
 
-        document.querySelector('.config-panel').classList.remove('hidden');
+        document.getElementById('main-config-panel').classList.remove('hidden');
+    }
+
+    closeSettings() {
+        document.getElementById('main-config-panel').classList.add('hidden');
     }
 
     addSoundRow(data = null) {
@@ -292,24 +344,24 @@ class App {
                     <i class="fas fa-volume-up"></i> SLOT SUARA
                 </span>
                 <div style="display:flex; gap: 0.5rem;">
-                    <button class="btn-play-preview" title="Test Suara" style="background:none; border:none; color:var(--success); cursor:pointer;">
+                    <button class="btn-preview-sound" title="Test Suara" style="background:none; border:none; color:var(--success); cursor:pointer;">
                         <i class="fas fa-play-circle"></i>
                     </button>
-                    <button class="btn-remove-sound" title="Hapus Suara" style="background:none; border:none; color:var(--danger); cursor:pointer;">
+                    <button class="btn-remove-sound" title="Hapus" style="background:none; border:none; color:var(--danger); cursor:pointer;">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
             </div>
             <div class="sound-inputs">
                 <div class="input-group">
-                    <label style="font-size:0.7rem">Pilih File</label>
+                    <label style="font-size:0.7rem">File</label>
                     <select class="snd-file">
                         <option value="">-- Pilih --</option>
                         ${optionsHtml}
                     </select>
                 </div>
                 <div class="input-group">
-                    <label style="font-size:0.7rem">Tipe Trigger</label>
+                    <label style="font-size:0.7rem">Tipe</label>
                     <select class="snd-type">
                         <option value="start" ${data?.type === 'start' ? 'selected' : ''}>Mulai</option>
                         <option value="end" ${data?.type === 'end' ? 'selected' : ''}>Selesai</option>
@@ -323,33 +375,17 @@ class App {
             </div>
         `;
 
-        const typeSelect = div.querySelector('.snd-type');
-        const timeInput = div.querySelector('.snd-time');
-        const previewBtn = div.querySelector('.btn-play-preview');
-        
-        typeSelect.addEventListener('change', () => {
-            timeInput.disabled = (typeSelect.value === 'loop');
-            if (typeSelect.value === 'loop') timeInput.value = 0;
+        div.querySelector('.snd-type').addEventListener('change', (e) => {
+            div.querySelector('.snd-time').disabled = (e.target.value === 'loop');
         });
 
-        previewBtn.addEventListener('click', () => {
-            const filename = div.querySelector('.snd-file').value;
-            if (filename) {
-                const audio = new Audio(`assets/${filename}`);
-                audio.play().catch(() => alert('File tidak ditemukan di assets/'));
-            } else {
-                alert('Pilih file dulu untuk mengetes!');
-            }
+        div.querySelector('.btn-preview-sound').addEventListener('click', () => {
+            const file = div.querySelector('.snd-file').value;
+            if (file) new Audio(`assets/${file}`).play().catch(console.warn);
         });
 
         div.querySelector('.btn-remove-sound').addEventListener('click', () => {
-            if (document.querySelectorAll('.sound-item').length > 1) {
-                div.remove();
-            } else {
-                div.querySelector('.snd-file').value = '';
-                div.querySelector('.snd-type').value = 'start';
-                div.querySelector('.snd-time').value = 0;
-            }
+            if (document.querySelectorAll('.sound-item').length > 1) div.remove();
         });
         
         container.appendChild(div);
@@ -367,19 +403,17 @@ class App {
         timer.updateDisplay();
 
         timer.sounds = [];
-        const rows = document.querySelectorAll('.sound-item');
-        rows.forEach(row => {
+        document.querySelectorAll('.sound-item').forEach(row => {
             const filename = row.querySelector('.snd-file').value;
             const type = row.querySelector('.snd-type').value;
             const time = parseInt(row.querySelector('.snd-time').value) || 0;
-            
             if (filename) {
-                const audio = new Audio(`assets/${filename}`);
-                timer.sounds.push({ filename, type, time, audio, played: false });
+                timer.sounds.push({ filename, type, time, audio: new Audio(`assets/${filename}`), played: false });
             }
         });
 
-        alert(`${timer.sounds.length} Suara berhasil disimpan untuk timer ${timer.title}!`);
+        alert(`Pengaturan timer ${timer.title} berhasil disimpan!`);
+        this.closeSettings();
     }
 }
 

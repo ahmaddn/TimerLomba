@@ -33,15 +33,24 @@ body {
     padding: 1.5rem;
 }
 
-/* Dashboard Grid Layout (For Timer Pages) */
-.dashboard-grid {
+/* SPA Views Layouts */
+.dashboard-grid-view {
     display: grid;
     grid-template-columns: 1fr minmax(300px, 400px);
     gap: 1.5rem;
+    align-items: start;
+}
+
+.focused-view {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 200px);
+    width: 100%;
 }
 
 @media (max-width: 1024px) {
-    .dashboard-grid { grid-template-columns: 1fr; }
+    .dashboard-grid-view { grid-template-columns: 1fr; }
 }
 
 /* Header & Tabs */
