@@ -225,8 +225,13 @@ class App {
 
     renderView(viewName) {
         const container = document.getElementById('view-container');
+        const header = document.querySelector('.app-header');
         const headerToggle = document.getElementById('global-auto-toggle-wrapper');
         
+        // Toggle Header visibility: Hidden on Home, Visible elsewhere
+        if (viewName === 'home') header.classList.add('hidden');
+        else header.classList.remove('hidden');
+
         // Hide/Show Auto Toggle based on view
         if (viewName === 'home' || viewName === 'petunjuk') headerToggle.style.visibility = 'hidden';
         else headerToggle.style.visibility = 'visible';

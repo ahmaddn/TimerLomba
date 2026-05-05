@@ -49,13 +49,73 @@ body {
     width: 100%;
 }
 
+/* Mobile & Tablet Optimizations */
 @media (max-width: 1024px) {
     .dashboard-grid-view { grid-template-columns: 1fr; }
 }
 
+@media (max-width: 768px) {
+    .container { padding: 1rem; }
+    
+    .app-header {
+        flex-direction: column;
+        gap: 1.5rem;
+        text-align: center;
+        align-items: center;
+    }
+
+    .tabs {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        justify-content: flex-start;
+        -webkit-overflow-scrolling: touch;
+        gap: 1.5rem;
+    }
+
+    .tab {
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .home-view { padding-top: 2rem; }
+    .home-view h1 { font-size: 2.2rem !important; letter-spacing: -1px !important; }
+
+    .timer-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+    }
+
+    .timer-card .time-display {
+        font-size: 3rem;
+    }
+
+    .timer-list[data-focused="true"] .time-display {
+        font-size: 5rem; /* Scale down for mobile screens */
+    }
+
+    .timer-list[data-focused="true"] .timer-card {
+        padding: 2.5rem 1.5rem;
+    }
+
+    .config-panel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1000;
+        border-radius: 0;
+        overflow-y: auto;
+        padding: 1.5rem;
+    }
+
+    .dashboard-grid-view { gap: 1rem; }
+}
+
 /* Header & Tabs */
 .app-header {
-    grid-column: 1 / -1;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -132,7 +192,7 @@ body {
     font-variant-numeric: tabular-nums;
 }
 
-/* Focused View (for separate pages) */
+/* Focused View Layout */
 .timer-list[data-focused="true"] {
     width: 100%;
     max-width: 900px;
@@ -154,7 +214,7 @@ body {
 }
 
 .timer-list[data-focused="true"] .time-display {
-    font-size: 10rem; /* Super large for projectors */
+    font-size: 10rem;
     line-height: 1;
 }
 
@@ -212,8 +272,6 @@ body {
     border-color: var(--accent);
     transform: translateY(-2px);
 }
-
-.btn-circle svg { width: 28px; height: 28px; fill: currentColor; }
 
 /* Config Panel */
 .config-panel {
