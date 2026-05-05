@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petunjuk Penggunaan - Web Timer Lomba</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .guide-content {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            max-width: 850px;
+            margin: 2rem auto;
+        }
+        .guide-content h2 { margin-bottom: 1.5rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem; }
+        .guide-content h3 { margin: 1.5rem 0 0.5rem; font-size: 1.15rem; color: #333; }
+        .guide-content ul { padding-left: 1.5rem; margin-bottom: 1.5rem; }
+        .guide-content li { margin-bottom: 0.75rem; color: var(--text-muted); line-height: 1.6; }
+        .guide-content code { background: #f0f0f0; padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; }
+        .back-link { display: inline-block; margin-top: 2rem; color: var(--accent); text-decoration: none; font-weight: 700; }
+        .back-link:hover { text-decoration: underline; }
+        .badge { background: var(--accent); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; vertical-align: middle; margin-left: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 style="font-size: 2.2rem; color: #333; margin-bottom: 0.5rem;">Petunjuk Penggunaan</h1>
+            <p style="color: var(--text-muted);">Panduan fitur terbaru Web Timer Lomba v2.0</p>
+        </header>
+
+        <div class="guide-content">
+            <h2><i class="fas fa-info-circle"></i> Memulai Penggunaan</h2>
+            
+            <h3>1. Kontrol Timer di Kartu</h3>
+            <ul>
+                <li>Setiap timer memiliki 3 tombol utama:
+                    <ul>
+                        <li><i class="fas fa-redo"></i> <strong>Reset:</strong> Mengembalikan waktu ke posisi awal.</li>
+                        <li><i class="fas fa-cog"></i> <strong>Pengaturan:</strong> Membuka panel konfigurasi di sisi kanan.</li>
+                        <li><i class="fas fa-play"></i> <strong>Mulai/Jeda:</strong> Menjalankan atau menghentikan timer sementara.</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3>2. Mengatur Banyak Suara (Slot Suara)</h3>
+            <ul>
+                <li>Anda dapat menambahkan lebih dari satu suara untuk satu timer yang sama.</li>
+                <li>Klik <strong>"+ Tambah Suara Baru"</strong> untuk menambah slot suara tambahan.</li>
+                <li>Gunakan **Dropdown** untuk memilih file yang sudah ada di folder <code>assets/</code>.</li>
+                <li>Klik ikon **Play Hijau** (<i class="fas fa-play-circle"></i>) di setiap slot untuk mengetes bunyi suara sebelum disimpan.</li>
+            </ul>
+
+            <h3>3. Logika Trigger Suara <span class="badge">PENTING</span></h3>
+            <ul>
+                <li><strong>Mulai:</strong> Suara berbunyi sejak detik ke-0 (saat klik Play) dan akan <strong>berhenti otomatis</strong> pada detik ke-X yang diinput. Sangat cocok untuk musik intro.</li>
+                <li><strong>Selesai:</strong> Suara mulai berbunyi saat sisa waktu mencapai X detik terakhir (countdown) dan berhenti saat timer habis.</li>
+                <li><strong>Berputar:</strong> Suara akan terus berbunyi (loop) selama timer berjalan dari awal sampai akhir.</li>
+            </ul>
+
+            <h3>4. Mode Auto & Navigasi</h3>
+            <ul>
+                <li>Aktifkan <strong>Mode Auto</strong> di header agar timer berpindah otomatis ke tahap berikutnya (Persiapan &rarr; Lomba &rarr; Evaluasi).</li>
+                <li>Pada mode halaman terpisah, browser akan melakukan navigasi otomatis dan langsung menjalankan timer di halaman baru.</li>
+            </ul>
+
+            <h3>5. Mode Fokus (Tampilan Besar)</h3>
+            <ul>
+                <li>Jika Anda membuka halaman per-bagian (contoh: <code>persiapan.html</code>), tampilan timer akan menjadi **sangat besar** dan terpusat. Mode ini dirancang khusus untuk ditampilkan di proyektor agar terlihat oleh seluruh peserta lomba.</li>
+            </ul>
+
+            <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</a>
+        </div>
+    </div>
+</body>
+</html>
