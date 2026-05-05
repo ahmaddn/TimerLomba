@@ -111,18 +111,45 @@
 
     <template id="template-petunjuk">
         <div class="guide-content">
-            <h2><i class="fas fa-info-circle"></i> Memulai Penggunaan</h2>
-            <h3>1. Kontrol Timer</h3>
+            <h2><i class="fas fa-info-circle"></i> Petunjuk Penggunaan Lengkap</h2>
+            
+            <h3>1. Kontrol Timer di Kartu</h3>
             <ul>
-                <li><i class="fas fa-redo"></i> <strong>Reset:</strong> Mengulang waktu.</li>
-                <li><i class="fas fa-cog"></i> <strong>Atur:</strong> Ubah durasi & suara.</li>
-                <li><i class="fas fa-play"></i> <strong>Mulai:</strong> Jalankan timer.</li>
+                <li>Setiap timer memiliki 3 tombol aksi cepat:
+                    <ul>
+                        <li><i class="fas fa-redo"></i> <strong>Reset:</strong> Mengulang waktu ke posisi awal.</li>
+                        <li><i class="fas fa-cog"></i> <strong>Pengaturan:</strong> Membuka panel suara dan durasi.</li>
+                        <li><i class="fas fa-play"></i> <strong>Mulai/Jeda:</strong> Menjalankan atau menghentikan timer.</li>
+                    </ul>
+                </li>
             </ul>
-            <h3>2. Logika Suara</h3>
+
+            <h3>2. Mengatur Banyak Suara (Slot Suara)</h3>
             <ul>
-                <li><strong>Mulai:</strong> Berhenti otomatis di detik ke-X.</li>
-                <li><strong>Selesai:</strong> Bunyi di X detik terakhir.</li>
+                <li>Anda bisa menambah lebih dari satu suara untuk satu timer.</li>
+                <li>Klik <strong>"+ Tambah Suara Baru"</strong> untuk menambah slot.</li>
+                <li>Gunakan **Dropdown** untuk memilih file di folder <code>assets/</code>.</li>
+                <li>Gunakan ikon **Play Hijau** (<i class="fas fa-play-circle"></i>) untuk mengetes suara.</li>
             </ul>
+
+            <h3>3. Logika Trigger Suara <span class="badge">PENTING</span></h3>
+            <ul>
+                <li><strong>Mulai:</strong> Bunyi dari detik ke-0 dan <strong>berhenti otomatis</strong> pada detik ke-X yang diinput. (Cocok untuk Intro).</li>
+                <li><strong>Selesai:</strong> Mulai bunyi saat sisa waktu mencapai X detik terakhir (Countdown).</li>
+                <li><strong>Berputar:</strong> Bunyi terus-menerus (loop) selama timer berjalan.</li>
+            </ul>
+
+            <h3>4. Mode Auto & Navigasi</h3>
+            <ul>
+                <li>Aktifkan <strong>Mode Auto</strong> agar timer berpindah otomatis ke tahap berikutnya (Persiapan &rarr; Lomba &rarr; Evaluasi).</li>
+                <li>Sistem akan otomatis berpindah halaman dan langsung menjalankan timer berikutnya.</li>
+            </ul>
+
+            <h3>5. Mode Fokus (Layar Besar)</h3>
+            <ul>
+                <li>Buka menu **Persiapan, Lomba, atau Evaluasi** untuk tampilan timer raksasa yang dirancang khusus untuk proyektor.</li>
+            </ul>
+
             <a href="#home" class="back-link"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</a>
         </div>
     </template>

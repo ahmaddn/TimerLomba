@@ -424,3 +424,68 @@ input:focus + .slider {
 input:checked + .slider:before {
   transform: translateX(20px);
 }
+
+/* Guide Page Styles */
+.guide-content {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    padding: 3rem;
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    max-width: 850px;
+    margin: 2rem auto;
+}
+
+.guide-content h2 { 
+    margin-bottom: 1.5rem; 
+    color: var(--accent); 
+    display: flex; 
+    align-items: center; 
+    gap: 0.5rem; 
+}
+
+.guide-content h3 { 
+    margin: 1.5rem 0 0.5rem; 
+    font-size: 1.15rem; 
+    color: #333; 
+}
+
+.guide-content ul { 
+    padding-left: 1.5rem; 
+    margin-bottom: 1.5rem; 
+}
+
+.guide-content li { 
+    margin-bottom: 0.75rem; 
+    color: var(--text-muted); 
+    line-height: 1.6; 
+}
+
+.guide-content code { 
+    background: rgba(0,0,0,0.05); 
+    padding: 0.2rem 0.4rem; 
+    border-radius: 4px; 
+    font-family: monospace; 
+}
+
+.back-link { 
+    display: inline-block; 
+    margin-top: 2rem; 
+    color: var(--accent); 
+    text-decoration: none; 
+    font-weight: 700; 
+}
+
+.back-link:hover { 
+    text-decoration: underline; 
+}
+
+.badge { 
+    background: var(--accent); 
+    color: white; 
+    padding: 2px 8px; 
+    border-radius: 4px; 
+    font-size: 0.7rem; 
+    vertical-align: middle; 
+    margin-left: 5px; 
+}
