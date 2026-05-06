@@ -221,7 +221,7 @@ body:not(.home-active) {
   color: var(--accent);
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
 }
 
 .timer-card::after {
@@ -297,7 +297,7 @@ body:not(.home-active) {
 
 
 .timer-info h2 {
-  font-size: 0.85rem;
+  font-size: 1.1rem;
   color: var(--accent);
   margin-bottom: 0.5rem;
   font-weight: 800;
@@ -350,7 +350,7 @@ body:not(.home-active) {
 }
 
 .timer-list[data-focused="true"] .timer-info h2 {
-  font-size: 1.75rem;
+  font-size: 3.5rem;
   margin-bottom: 1.5rem;
 }
 
@@ -370,7 +370,7 @@ body:not(.home-active) {
 }
 
 .timer-list[data-focused="true"] .custom-message-text {
-  font-size: 2.5rem;
+  font-size: 1.75rem;
   margin-top: 2rem;
 }
 
