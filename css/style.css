@@ -69,14 +69,13 @@ body:not(.home-active) {
 /* SPA Views Layouts */
 .dashboard-grid-view {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  align-items: stretch;
+  grid-template-columns: 1.2fr 0.8fr; /* Favor the list slightly */
+  gap: 2rem;
+  align-items: start;
   animation: fadeIn 0.5s ease-out;
   width: 100%;
-  height: calc(100vh - 10rem);
+  min-height: calc(100vh - 12rem);
   margin: 0;
-  flex: 1;
 }
 
 .focused-view {
@@ -155,9 +154,23 @@ body:not(.home-active) {
 .timer-list {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
   overflow-y: auto;
   padding-right: 0.5rem;
+}
+
+.timer-info {
+  flex: 1;
+  min-width: 0; /* Allow shrinking */
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.timer-actions {
+  display: flex;
+  gap: 1rem;
+  flex-shrink: 0;
 }
 
 /* Custom Scrollbar */
@@ -175,19 +188,21 @@ body:not(.home-active) {
 }
 
 .timer-card {
-  background: var(--glass-bg);
+  background: var(--card-bg);
   backdrop-filter: blur(10px);
-  border-radius: 24px;
-  padding: 2rem 2.5rem;
-  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color);
+  padding: 2.5rem;
+  border-radius: 30px;
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  position: relative;
-  border: 1px solid var(--glass-border);
+  gap: 2rem;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   cursor: pointer;
+  position: relative;
+  min-height: 140px;
 }
 
 .timer-card::after {
@@ -294,15 +309,32 @@ body:not(.home-active) {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  width: fit-content;
+  width: 100%;
+}
+
+.progress-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  margin-top: 0.5rem;
 }
 
 .progress-bar-container {
-  width: 100%;
-  height: 4px;
+  flex: 1;
+  height: 8px;
   background: rgba(0, 0, 0, 0.05);
   border-radius: 10px;
   overflow: hidden;
+  position: relative;
+}
+
+.progress-percentage {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent);
+  min-width: 45px;
+  text-align: right;
 }
 
 .progress-bar {
@@ -1016,6 +1048,28 @@ body:not(.home-active) {
 }
 
 /* Animations */
+/* Warning Pulse Animation */
+.timer-card.warning-pulse {
+  animation: criticalPulse 1s infinite;
+  border-color: #ef4444 !important;
+  z-index: 10;
+}
+
+@keyframes criticalPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+    background: var(--glass-bg);
+  }
+  50% {
+    box-shadow: 0 0 20px 10px rgba(239, 68, 68, 0.2);
+    background: rgba(239, 68, 68, 0.05);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+    background: var(--glass-bg);
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

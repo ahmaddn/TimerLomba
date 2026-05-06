@@ -23,8 +23,11 @@ class Timer {
                 <h2>${this.title}</h2>
                 <div class="time-display-wrapper">
                     <div class="time-display">00:00:00</div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar"></div>
+                    <div class="progress-section">
+                        <div class="progress-bar-container">
+                            <div class="progress-bar"></div>
+                        </div>
+                        <span class="progress-percentage">0%</span>
                     </div>
                 </div>
             </div>
@@ -87,10 +90,12 @@ class Timer {
     if (display) display.textContent = displayStr;
 
     const bar = this.dom.querySelector(".progress-bar");
+    const perc = this.dom.querySelector(".progress-percentage");
     if (bar) {
       const progress =
         ((this.totalSeconds - this.remainingSeconds) / this.totalSeconds) * 100;
       bar.style.width = `${progress}%`;
+      if (perc) perc.textContent = `${Math.round(progress)}%`;
     }
 
     // Sync with Dashboard Right Panel if this is the selected timer
@@ -150,6 +155,7 @@ class Timer {
   reset() {
     this.pause();
     this.remainingSeconds = this.totalSeconds;
+    this.dom.classList.remove("warning-pulse");
     this.updateDisplay();
     this.sounds.forEach((s) => {
       s.played = false;
@@ -162,6 +168,7 @@ class Timer {
 
   complete() {
     this.pause();
+    this.dom.classList.remove("warning-pulse");
     this.sounds.forEach((s) => {
       if (s.audio && s.type !== "end") {
         s.audio.pause();
@@ -191,6 +198,7 @@ class Timer {
         if (this.remainingSeconds === s.time) {
           s.audio.currentTime = 0;
           s.audio.play().catch(console.warn);
+          this.dom.classList.add("warning-pulse");
         }
       }
     });
