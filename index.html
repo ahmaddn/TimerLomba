@@ -345,101 +345,56 @@
 
     <template id="template-petunjuk">
       <div class="guide-content">
-        <h2><i class="fas fa-book-open"></i> Panduan Penggunaan Lengkap</h2>
+        <header class="view-header">
+          <h1><i class="fas fa-book-open"></i> Petunjuk Penggunaan</h1>
+          <p>Pelajari cara memaksimalkan fitur Timer Lomba untuk acara Anda.</p>
+        </header>
 
         <div class="guide-section">
-          <h3><i class="fas fa-rocket"></i> Memulai Cepat</h3>
+          <h3><i class="fas fa-tachometer-alt"></i> Dashboard Imersif</h3>
           <p>
-            Aplikasi ini dirancang untuk memudahkan manajemen waktu dalam
-            perlombaan. Anda dapat memulainya melalui halaman
-            <strong>Dashboard</strong> untuk mengatur semua timer secara
-            kolektif, atau menggunakan <strong>Mode Fokus</strong> untuk
-            menampilkan satu timer di layar proyektor.
+            Halaman Dashboard dirancang sebagai pusat kendali utama dengan tampilan kartu raksasa untuk visibilitas maksimal.
           </p>
-        </div>
-
-        <div class="guide-section">
-          <h3><i class="fas fa-sliders-h"></i> Pengaturan Timer & Suara</h3>
           <ul>
-            <li>
-              Klik ikon <strong>Gear</strong> <i class="fas fa-cog"></i> pada
-              kartu timer untuk membuka pengaturan durasi dan suara.
-            </li>
-            <li>
-              <strong>Durasi:</strong> Anda dapat mengatur jam, menit, dan detik
-              secara presisi.
-            </li>
-            <li>
-              <strong>Slot Suara:</strong> Anda bisa menambahkan banyak suara
-              untuk satu timer (misal: bunyi "Ting" di awal, dan "Alarm" di
-              akhir).
-            </li>
-            <li>
-              <strong>Tipe Suara:</strong>
-              <ul>
-                <li>
-                  <code>Mulai</code>: Bunyi akan diputar saat timer dijalankan
-                  dan berhenti otomatis pada detik ke-X.
-                </li>
-                <li>
-                  <code>Selesai</code>: Bunyi akan diputar saat sisa waktu
-                  mencapai X detik terakhir (Count down).
-                </li>
-                <li>
-                  <code>Berputar (Loop)</code>: Bunyi akan diputar terus menerus
-                  selama timer berjalan.
-                </li>
-              </ul>
-            </li>
+            <li><strong>Pilih Timer:</strong> Klik pada kartu timer di sebelah kiri untuk menampilkannya di panel kontrol besar di sebelah kanan.</li>
+            <li><strong>Edit Cepat Durasi:</strong> Klik pada angka jam, menit, atau detik di panel kanan untuk mengubah durasi secara instan melalui modal modern tanpa perlu masuk ke menu pengaturan.</li>
+            <li><strong>Layout Adaptif:</strong> Kartu timer akan otomatis membesar untuk memenuhi layar Anda secara vertikal, memastikan tidak ada ruang kosong yang terbuang.</li>
           </ul>
         </div>
 
         <div class="guide-section">
           <h3><i class="fas fa-magic"></i> Mode Otomatis (Auto Mode)</h3>
           <p>
-            Aktifkan saklar <strong>Mode Auto</strong> di bagian header. Dengan
-            fitur ini:
+            Aktifkan saklar <strong>Mode Auto</strong> di bagian header untuk alur kerja yang cerdas:
           </p>
           <ul>
-            <li>
-              Saat timer <strong>Persiapan</strong> selesai, sistem akan
-              otomatis berpindah ke halaman <strong>Lomba</strong> dan
-              menjalankan timer.
-            </li>
-            <li>
-              Setelah <strong>Lomba</strong> selesai, sistem akan berpindah ke
-              <strong>Evaluasi</strong>.
-            </li>
-            <li>
-              Fitur ini sangat berguna agar operator tidak perlu melakukan klik
-              manual setiap pergantian tahap.
-            </li>
+            <li>Sistem akan otomatis berpindah antar tahap (Persiapan → Lomba → Evaluasi) saat waktu habis.</li>
+            <li>Timer berikutnya akan langsung berjalan otomatis, sangat ideal untuk menjaga ketepatan waktu acara tanpa intervensi manual.</li>
+          </ul>
+        </div>
+
+        <div class="guide-section">
+          <h3><i class="fas fa-bell"></i> Suara Pengingat Kustom</h3>
+          <p>
+            Klik ikon <i class="fas fa-cog"></i> pada kartu timer untuk mengatur suara:
+          </p>
+          <ul>
+            <li><strong>Mulai:</strong> Bunyi yang diputar saat timer dijalankan.</li>
+            <li><strong>Selesai:</strong> Bunyi hitung mundur otomatis di akhir waktu.</li>
+            <li><strong>Loop:</strong> Bunyi latar (background) yang terus berputar selama timer aktif.</li>
           </ul>
         </div>
 
         <div class="guide-section">
           <h3><i class="fas fa-tv"></i> Mode Fokus & Proyektor</h3>
           <p>
-            Gunakan menu <strong>Persiapan</strong>, <strong>Lomba</strong>,
-            atau <strong>Evaluasi</strong> di navigasi atas untuk menampilkan
-            timer dalam ukuran raksasa. Tampilan ini dirancang khusus agar mudah
-            terlihat oleh peserta dari jarak jauh melalui proyektor.
+            Gunakan menu navigasi di atas untuk menampilkan timer tunggal dalam ukuran raksasa yang dioptimalkan khusus untuk layar proyektor.
           </p>
         </div>
 
-        <div class="guide-section">
-          <h3><i class="fas fa-plus-circle"></i> Menambah & Menghapus Timer</h3>
-          <p>
-            Di halaman Dashboard, Anda dapat menambah timer baru dengan nama
-            kustom. Anda juga dapat menghapus timer yang tidak diperlukan
-            melalui tombol <i class="fas fa-trash-alt"></i> pada masing-masing
-            kartu.
-          </p>
-        </div>
-
-        <a href="#home" class="back-link"
-          ><i class="fas fa-arrow-left"></i> Kembali ke Beranda</a
-        >
+        <a href="#home" class="back-link">
+          <i class="fas fa-arrow-left"></i> Kembali ke Beranda
+        </a>
       </div>
     </template>
 
