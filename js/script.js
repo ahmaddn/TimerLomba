@@ -413,10 +413,10 @@ class App {
         const timer = this.timers.find((t) => t.id === targetId);
         if (timer) {
           list.appendChild(timer.dom);
-          // Check for auto-start
+          // Check for auto-start (no delay)
           if (localStorage.getItem("timerAutoStart") === "true") {
             localStorage.removeItem("timerAutoStart");
-            setTimeout(() => timer.start(), 1000);
+            timer.start();
           }
         }
       } else {
@@ -508,8 +508,9 @@ class App {
       this.selectTimer(nextTimer);
       nextTimer.start();
     } else {
-      localStorage.setItem("timerAutoStart", "true");
+      // Navigate to next view and start immediately (no delay)
       location.hash = `#${nextView}`;
+      nextTimer.start();
     }
   }
 
@@ -676,7 +677,8 @@ class App {
       timer.dom.querySelector("h2").textContent = newTitle;
       // If selected, update right panel
       if (this.selectedTimer === timer) {
-        document.getElementById("selected-timer-info").textContent = newTitle;
+        const titleEl = document.getElementById("selected-timer-info");
+        if (titleEl) titleEl.textContent = newTitle;
       }
     }
 
