@@ -17,6 +17,10 @@
   <body>
     <!-- App Container -->
     <div id="app" class="container">
+      <!-- Background Decorations -->
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+
       <!-- Header (Akan selalu tampil) -->
       <header class="app-header">
         <div
@@ -48,11 +52,11 @@
         <!-- Content will be injected here by script.js -->
       </div>
 
-      <!-- Persistent Footer -->
+      <!-- Footer Area -->
       <footer
         style="
-          margin-top: 6rem;
-          margin-bottom: 2rem;
+          margin-top: auto;
+          padding: 4rem 0 2rem;
           text-align: center;
           color: var(--text-muted);
           font-size: 0.9rem;
@@ -63,116 +67,118 @@
         <i class="fas fa-heart" style="color: var(--danger)"></i> untuk
         kenyamanan pengguna.
       </footer>
-
-      <!-- Configuration Panel (Overlay/Side) -->
-      <aside class="config-panel hidden" id="main-config-panel">
-        <div class="config-header">
-          <h3 id="config-title">Pengaturan Timer</h3>
-          <button
-            class="btn-text"
-            onclick="app.closeSettings()"
-            style="color: var(--text-muted)"
-          >
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <div class="setting-row">
-          <label>Setel Durasi</label>
-          <div class="duration-inputs">
-            <div class="duration-box">
-              <input type="number" id="cfg-hours" min="0" value="0" /><span
-                >jam</span
-              >
-            </div>
-            <div class="duration-box">
-              <input
-                type="number"
-                id="cfg-mins"
-                min="0"
-                max="59"
-                value="0"
-              /><span>mnt</span>
-            </div>
-            <div class="duration-box">
-              <input
-                type="number"
-                id="cfg-secs"
-                min="0"
-                max="59"
-                value="0"
-              /><span>dtk</span>
-            </div>
-          </div>
-        </div>
-        <div class="setting-row">
-          <label>Suara Pengingat (assets/)</label>
-          <div id="sound-list" class="sound-list"></div>
-          <button id="add-sound-btn" class="btn-add-sound">
-            <i class="fas fa-plus"></i> Tambah Suara Baru
-          </button>
-        </div>
-        <button id="save-config-btn" class="main-action-btn">
-          <i class="fas fa-save"></i> Simpan Pengaturan
-        </button>
-      </aside>
     </div>
 
-    <!-- Templates (Hidden from DOM) -->
+    <!-- Modals -->
+    <!-- Global Config Modal (Previously aside) -->
+    <div class="modal-overlay" id="modal-settings">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="config-title">Pengaturan Timer</h2>
+          <p>Sesuaikan durasi dan suara pengingat untuk timer ini.</p>
+        </div>
+        <div class="modal-body">
+          <div class="setting-row">
+            <label>Setel Durasi</label>
+            <div class="duration-inputs">
+              <div class="duration-box">
+                <input type="number" id="cfg-hours" min="0" value="0" />
+                <span>jam</span>
+              </div>
+              <div class="duration-box">
+                <input type="number" id="cfg-mins" min="0" max="59" value="0" />
+                <span>mnt</span>
+              </div>
+              <div class="duration-box">
+                <input type="number" id="cfg-secs" min="0" max="59" value="0" />
+                <span>dtk</span>
+              </div>
+            </div>
+          </div>
+          <div class="setting-row">
+            <label>Suara Pengingat</label>
+            <div id="sound-list" class="sound-list"></div>
+            <button id="add-sound-btn" class="btn-add-sound">
+              <i class="fas fa-plus"></i> Tambah Suara Baru
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="app.closeModal('settings')">Batal</button>
+          <button class="btn-primary" id="save-config-btn">Simpan Perubahan</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Timer Modal -->
+    <div class="modal-overlay" id="modal-add-timer">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Tambah Pewaktu Baru</h2>
+          <p>Masukkan nama dan durasi awal untuk timer baru Anda.</p>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Nama Lomba / Tahap</label>
+            <input type="text" id="add-timer-name" placeholder="Contoh: Babak Final" />
+          </div>
+          <div class="form-group">
+            <label>Durasi (Menit)</label>
+            <input type="number" id="add-timer-duration" value="5" min="1" />
+          </div>
+          <p id="add-timer-error" style="color: var(--danger); font-size: 0.85rem; margin-top: 0.5rem; display: none;">Nama timer tidak boleh kosong!</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="app.closeModal('add-timer')">Batal</button>
+          <button class="btn-primary" id="confirm-add-timer">Tambah Sekarang</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="modal-delete-confirm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 style="color: var(--danger)">Hapus Timer?</h2>
+          <p>Tindakan ini tidak dapat dibatalkan. Timer akan dihapus permanen.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="app.closeModal('delete-confirm')">Batal</button>
+          <button class="btn-danger" id="confirm-delete-timer">Hapus Permanen</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Templates -->
     <template id="template-home">
-      <div class="home-view" style="padding-top: 4rem">
-        <div style="text-align: center; margin-bottom: 4rem">
-          <h1
-            style="
-              font-size: 3.5rem;
-              font-weight: 800;
-              color: #333;
-              margin-bottom: 1rem;
-              letter-spacing: -2px;
-            "
-          >
-            Web Timer Lomba
-          </h1>
-          <p
-            style="
-              color: var(--text-muted);
-              font-size: 1.2rem;
-              max-width: 600px;
-              margin: 0 auto;
-            "
-          >
+      <div class="home-view">
+        <div class="home-hero">
+          <h1>Web Timer Lomba</h1>
+          <p>
             Panel kontrol waktu yang estetik, simpel, dan profesional untuk
-            segala jenis perlombaan.
+            segala jenis perlombaan. Dirancang untuk kemudahan dan performa.
           </p>
         </div>
         <div class="home-options">
           <a href="#dashboard" class="home-card">
-            <span class="icon" style="color: var(--accent)"
-              ><i class="fas fa-desktop"></i
-            ></span>
-            <h3>Dashboard Utama</h3>
+            <span class="icon" style="font-size: 3rem; margin-bottom: 2rem; width: 80px; height: 80px; background: white; display: flex; align-items: center; justify-content: center; border-radius: 24px; color: var(--accent); box-shadow: var(--shadow-sm);"><i class="fas fa-th-large"></i></span>
+            <h3>Dashboard</h3>
             <p>
-              Pantau semua timer (Persiapan, Lomba, Evaluasi) dalam satu layar
-              kontrol yang lengkap.
+              Pantau semua timer dalam satu layar kontrol yang lengkap.
             </p>
           </a>
           <a href="#persiapan" class="home-card">
-            <span class="icon" style="color: var(--accent)"
-              ><i class="fas fa-expand"></i
-            ></span>
+            <span class="icon" style="font-size: 3rem; margin-bottom: 2rem; width: 80px; height: 80px; background: white; display: flex; align-items: center; justify-content: center; border-radius: 24px; color: var(--accent); box-shadow: var(--shadow-sm);"><i class="fas fa-expand-arrows-alt"></i></span>
             <h3>Mode Fokus</h3>
             <p>
-              Tampilkan satu timer saja di layar besar agar peserta bisa fokus
-              pada waktu yang berjalan.
+              Tampilkan satu timer saja di layar besar untuk proyektor.
             </p>
           </a>
           <a href="#petunjuk" class="home-card">
-            <span class="icon" style="color: var(--accent)"
-              ><i class="fas fa-book"></i
-            ></span>
-            <h3>Petunjuk Penggunaan</h3>
+            <span class="icon" style="font-size: 3rem; margin-bottom: 2rem; width: 80px; height: 80px; background: white; display: flex; align-items: center; justify-content: center; border-radius: 24px; color: var(--accent); box-shadow: var(--shadow-sm);"><i class="fas fa-book-open"></i></span>
+            <h3>Petunjuk</h3>
             <p>
-              Baca panduan lengkap mengenai pengaturan durasi, suara pengingat,
-              dan mode otomatis.
+              Panduan lengkap mengenai pengaturan durasi dan suara.
             </p>
           </a>
         </div>
@@ -183,13 +189,11 @@
       <div class="dashboard-grid-view">
         <main class="timer-list" id="dashboard-timer-list">
           <!-- Timers injected here -->
-          <button
-            id="add-new-timer-btn"
-            class="btn-text"
-            style="margin-top: 1rem; justify-content: center; width: 100%"
-          >
-            <i class="fas fa-plus"></i> Tambah pewaktu baru
-          </button>
+          <div class="add-timer-container">
+            <button id="add-new-timer-btn" class="btn-add-timer-large">
+              <i class="fas fa-plus-circle"></i> Tambah Pewaktu Baru
+            </button>
+          </div>
         </main>
         <aside class="config-placeholder" id="config-empty-state">
           <i
@@ -214,86 +218,50 @@
 
     <template id="template-petunjuk">
       <div class="guide-content">
-        <h2><i class="fas fa-info-circle"></i> Petunjuk Penggunaan Lengkap</h2>
+        <h2><i class="fas fa-book-open"></i> Panduan Penggunaan Lengkap</h2>
+        
+        <div class="guide-section">
+          <h3><i class="fas fa-rocket"></i> Memulai Cepat</h3>
+          <p>Aplikasi ini dirancang untuk memudahkan manajemen waktu dalam perlombaan. Anda dapat memulainya melalui halaman <strong>Dashboard</strong> untuk mengatur semua timer secara kolektif, atau menggunakan <strong>Mode Fokus</strong> untuk menampilkan satu timer di layar proyektor.</p>
+        </div>
 
-        <h3>1. Kontrol Timer di Kartu</h3>
-        <ul>
-          <li>
-            Setiap timer memiliki 3 tombol aksi cepat:
-            <ul>
-              <li>
-                <i class="fas fa-redo"></i> <strong>Reset:</strong> Mengulang
-                waktu ke posisi awal.
-              </li>
-              <li>
-                <i class="fas fa-cog"></i> <strong>Pengaturan:</strong> Membuka
-                panel suara dan durasi.
-              </li>
-              <li>
-                <i class="fas fa-play"></i>
-                <strong>Mulai/Jeda:</strong> Menjalankan atau menghentikan
-                timer.
-              </li>
-            </ul>
-          </li>
-        </ul>
+        <div class="guide-section">
+          <h3><i class="fas fa-sliders-h"></i> Pengaturan Timer & Suara</h3>
+          <ul>
+            <li>Klik ikon <strong>Gear</strong> <i class="fas fa-cog"></i> pada kartu timer untuk membuka pengaturan durasi dan suara.</li>
+            <li><strong>Durasi:</strong> Anda dapat mengatur jam, menit, dan detik secara presisi.</li>
+            <li><strong>Slot Suara:</strong> Anda bisa menambahkan banyak suara untuk satu timer (misal: bunyi "Ting" di awal, dan "Alarm" di akhir).</li>
+            <li><strong>Tipe Suara:</strong> 
+              <ul>
+                <li><code>Mulai</code>: Bunyi akan diputar saat timer dijalankan dan berhenti otomatis pada detik ke-X.</li>
+                <li><code>Selesai</code>: Bunyi akan diputar saat sisa waktu mencapai X detik terakhir (Count down).</li>
+                <li><code>Berputar (Loop)</code>: Bunyi akan diputar terus menerus selama timer berjalan.</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
 
-        <h3>2. Mengatur Banyak Suara (Slot Suara)</h3>
-        <ul>
-          <li>Anda bisa menambah lebih dari satu suara untuk satu timer.</li>
-          <li>
-            Klik <strong>"+ Tambah Suara Baru"</strong> untuk menambah slot.
-          </li>
-          <li>
-            Gunakan **Dropdown** untuk memilih file di folder
-            <code>assets/</code>.
-          </li>
-          <li>
-            Gunakan ikon **Play Hijau** (<i class="fas fa-play-circle"></i>)
-            untuk mengetes suara.
-          </li>
-        </ul>
+        <div class="guide-section">
+          <h3><i class="fas fa-magic"></i> Mode Otomatis (Auto Mode)</h3>
+          <p>Aktifkan saklar <strong>Mode Auto</strong> di bagian header. Dengan fitur ini:</p>
+          <ul>
+            <li>Saat timer <strong>Persiapan</strong> selesai, sistem akan otomatis berpindah ke halaman <strong>Lomba</strong> dan menjalankan timer.</li>
+            <li>Setelah <strong>Lomba</strong> selesai, sistem akan berpindah ke <strong>Evaluasi</strong>.</li>
+            <li>Fitur ini sangat berguna agar operator tidak perlu melakukan klik manual setiap pergantian tahap.</li>
+          </ul>
+        </div>
 
-        <h3>3. Logika Trigger Suara <span class="badge">PENTING</span></h3>
-        <ul>
-          <li>
-            <strong>Mulai:</strong> Bunyi dari detik ke-0 dan
-            <strong>berhenti otomatis</strong> pada detik ke-X yang diinput.
-            (Cocok untuk Intro).
-          </li>
-          <li>
-            <strong>Selesai:</strong> Mulai bunyi saat sisa waktu mencapai X
-            detik terakhir (Countdown).
-          </li>
-          <li>
-            <strong>Berputar:</strong> Bunyi terus-menerus (loop) selama timer
-            berjalan.
-          </li>
-        </ul>
+        <div class="guide-section">
+          <h3><i class="fas fa-tv"></i> Mode Fokus & Proyektor</h3>
+          <p>Gunakan menu <strong>Persiapan</strong>, <strong>Lomba</strong>, atau <strong>Evaluasi</strong> di navigasi atas untuk menampilkan timer dalam ukuran raksasa. Tampilan ini dirancang khusus agar mudah terlihat oleh peserta dari jarak jauh melalui proyektor.</p>
+        </div>
 
-        <h3>4. Mode Auto & Navigasi</h3>
-        <ul>
-          <li>
-            Aktifkan <strong>Mode Auto</strong> agar timer berpindah otomatis ke
-            tahap berikutnya (Persiapan &rarr; Lomba &rarr; Evaluasi).
-          </li>
-          <li>
-            Sistem akan otomatis berpindah halaman dan langsung menjalankan
-            timer berikutnya.
-          </li>
-        </ul>
+        <div class="guide-section">
+          <h3><i class="fas fa-plus-circle"></i> Menambah & Menghapus Timer</h3>
+          <p>Di halaman Dashboard, Anda dapat menambah timer baru dengan nama kustom. Anda juga dapat menghapus timer yang tidak diperlukan melalui tombol <i class="fas fa-trash-alt"></i> pada masing-masing kartu.</p>
+        </div>
 
-        <h3>5. Mode Fokus (Layar Besar)</h3>
-        <ul>
-          <li>
-            Buka menu **Persiapan, Lomba, atau Evaluasi** untuk tampilan timer
-            raksasa yang dirancang khusus untuk proyektor.
-          </li>
-        </ul>
-
-        <a href="#home" class="back-link"
-          ><i class="fas fa-arrow-left"></i> Kembali ke Beranda</a
-        >
+        <a href="#home" class="back-link"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</a>
       </div>
     </template>
 

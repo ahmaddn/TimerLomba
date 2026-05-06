@@ -24,6 +24,9 @@ class Timer {
                 <div class="time-display">00:00:00</div>
             </div>
             <div class="timer-actions">
+                <button class="btn-circle delete-btn btn-delete-timer" title="Hapus Timer">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
                 <button class="btn-circle reset-btn" title="Reset Waktu">
                     <i class="fas fa-redo"></i>
                 </button>
@@ -40,6 +43,7 @@ class Timer {
             </div>
         `;
         
+        div.querySelector('.delete-btn').addEventListener('click', () => app.openDeleteModal(this));
         div.querySelector('.reset-btn').addEventListener('click', () => this.reset());
         div.querySelector('.settings-btn').addEventListener('click', () => app.openSettings(this));
         div.querySelector('.play-btn').addEventListener('click', () => this.toggle());
@@ -177,6 +181,7 @@ class App {
             'War Siren.mpeg'
         ];
         this.activeTimerForConfig = null;
+        this.timerToDelete = null;
         this.isAutoMode = localStorage.getItem('timerAutoMode') === 'true';
         this.currentView = '';
         
@@ -205,6 +210,10 @@ class App {
         document.getElementById('add-sound-btn').addEventListener('click', () => this.addSoundRow());
         document.getElementById('save-config-btn').addEventListener('click', () => this.saveConfig());
 
+        // Modal buttons
+        document.getElementById('confirm-add-timer').addEventListener('click', () => this.addNewTimer());
+        document.getElementById('confirm-delete-timer').addEventListener('click', () => this.deleteTimer());
+
         // Initial Routing
         if (!location.hash) location.hash = '#home';
         else this.handleRouting();
@@ -229,8 +238,13 @@ class App {
         const headerToggle = document.getElementById('global-auto-toggle-wrapper');
         
         // Toggle Header visibility: Hidden on Home, Visible elsewhere
-        if (viewName === 'home') header.classList.add('hidden');
-        else header.classList.remove('hidden');
+        if (viewName === 'home') {
+            header.classList.add('hidden');
+            document.body.classList.add('home-active');
+        } else {
+            header.classList.remove('hidden');
+            document.body.classList.remove('home-active');
+        }
 
         // Hide/Show Auto Toggle based on view
         if (viewName === 'home' || viewName === 'petunjuk') headerToggle.style.visibility = 'hidden';
@@ -245,8 +259,9 @@ class App {
         else if (viewName === 'dashboard') {
             container.innerHTML = document.getElementById('template-dashboard').innerHTML;
             const list = document.getElementById('dashboard-timer-list');
-            this.timers.forEach(t => list.insertBefore(t.dom, document.getElementById('add-new-timer-btn')));
-            document.getElementById('add-new-timer-btn').addEventListener('click', () => this.addNewTimer());
+            const addBtnContainer = document.querySelector('.add-timer-container');
+            this.timers.forEach(t => list.insertBefore(t.dom, addBtnContainer));
+            document.getElementById('add-new-timer-btn').addEventListener('click', () => this.openModal('add-timer'));
         }
         else {
             // Focused views (persiapan, lomba, evaluasi)
@@ -275,32 +290,74 @@ class App {
         this.currentView = viewName;
     }
 
+    openModal(modalId) {
+        document.getElementById(`modal-${modalId}`).classList.add('show');
+    }
+
+    closeModal(modalId) {
+        document.getElementById(`modal-${modalId}`).classList.remove('show');
+    }
+
     addNewTimer() {
-        const title = prompt('Masukkan Nama Pewaktu Baru:');
-        if (!title) return;
-        const minutes = parseInt(prompt('Masukkan Durasi (Menit):', '5')) || 5;
+        const titleInput = document.getElementById('add-timer-name');
+        const durationInput = document.getElementById('add-timer-duration');
         
-        const newId = this.timers.length + 1;
+        const title = titleInput.value.trim();
+        const minutes = parseInt(durationInput.value) || 5;
+        const errorMsg = document.getElementById('add-timer-error');
+        
+        if (!title) {
+            errorMsg.style.display = 'block';
+            return;
+        }
+        
+        errorMsg.style.display = 'none';
+        
+        const newId = this.timers.length > 0 ? Math.max(...this.timers.map(t => t.id)) + 1 : 1;
         const newTimer = new Timer(newId, title, minutes);
         this.timers.push(newTimer);
         
         if (this.currentView === 'dashboard') {
             const list = document.getElementById('dashboard-timer-list');
-            list.insertBefore(newTimer.dom, document.getElementById('add-new-timer-btn'));
+            const addBtnContainer = document.querySelector('.add-timer-container');
+            list.insertBefore(newTimer.dom, addBtnContainer);
         }
+
+        // Reset and Close
+        titleInput.value = '';
+        durationInput.value = '5';
+        this.closeModal('add-timer');
+    }
+
+    openDeleteModal(timer) {
+        this.timerToDelete = timer;
+        this.openModal('delete-confirm');
+    }
+
+    deleteTimer() {
+        if (!this.timerToDelete) return;
+
+        const index = this.timers.indexOf(this.timerToDelete);
+        if (index > -1) {
+            this.timerToDelete.pause();
+            this.timers.splice(index, 1);
+            this.timerToDelete.dom.remove();
+        }
+
+        this.timerToDelete = null;
+        this.closeModal('delete-confirm');
     }
 
     startNextTimer(currentId) {
-        const nextId = currentId + 1;
-        const nextTimer = this.timers.find(t => t.id === nextId);
+        const currentIndex = this.timers.findIndex(t => t.id === currentId);
+        const nextTimer = this.timers[currentIndex + 1];
         
         if (!nextTimer) {
-            alert('Seluruh rangkaian timer selesai!');
-            return;
+            return; // No more timers
         }
 
         const viewMapping = { 1: 'persiapan', 2: 'lomba', 3: 'evaluasi' };
-        const nextView = viewMapping[nextId] || 'dashboard';
+        const nextView = viewMapping[nextTimer.id] || 'dashboard';
 
         if (this.currentView === 'dashboard') {
             nextTimer.start();
@@ -327,11 +384,11 @@ class App {
         if (timer.sounds.length === 0) this.addSoundRow();
         else timer.sounds.forEach(sound => this.addSoundRow(sound));
 
-        document.getElementById('main-config-panel').classList.remove('hidden');
+        this.openModal('settings');
     }
 
     closeSettings() {
-        document.getElementById('main-config-panel').classList.add('hidden');
+        this.closeModal('settings');
     }
 
     addSoundRow(data = null) {
@@ -360,22 +417,22 @@ class App {
             <div class="sound-inputs">
                 <div class="input-group">
                     <label style="font-size:0.7rem">File</label>
-                    <select class="snd-file">
+                    <select class="snd-file" style="width:100%; padding:0.5rem; border-radius:8px; border:1px solid var(--border-color);">
                         <option value="">-- Pilih --</option>
                         ${optionsHtml}
                     </select>
                 </div>
                 <div class="input-group">
                     <label style="font-size:0.7rem">Tipe</label>
-                    <select class="snd-type">
+                    <select class="snd-type" style="width:100%; padding:0.5rem; border-radius:8px; border:1px solid var(--border-color);">
                         <option value="start" ${data?.type === 'start' ? 'selected' : ''}>Mulai</option>
                         <option value="end" ${data?.type === 'end' ? 'selected' : ''}>Selesai</option>
                         <option value="loop" ${data?.type === 'loop' ? 'selected' : ''}>Berputar</option>
                     </select>
                 </div>
-                <div class="input-group small">
+                <div class="input-group">
                     <label style="font-size:0.7rem">Detik</label>
-                    <input type="number" class="snd-time" min="0" value="${data ? data.time : 0}" ${data?.type === 'loop' ? 'disabled' : ''}>
+                    <input type="number" class="snd-time" min="0" value="${data ? data.time : 0}" ${data?.type === 'loop' ? 'disabled' : ''} style="width:100%; padding:0.5rem; border-radius:8px; border:1px solid var(--border-color);">
                 </div>
             </div>
         `;
@@ -417,7 +474,6 @@ class App {
             }
         });
 
-        alert(`Pengaturan timer ${timer.title} berhasil disimpan!`);
         this.closeSettings();
     }
 }
