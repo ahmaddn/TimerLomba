@@ -98,9 +98,14 @@
           <div class="setting-row">
             <label>Suara Pengingat</label>
             <div id="sound-list" class="sound-list"></div>
-            <button id="add-sound-btn" class="btn-add-sound">
-              <i class="fas fa-plus"></i> Tambah Suara Baru
-            </button>
+            <div class="sound-actions-row" style="display:flex; gap:1rem; margin-top:1rem;">
+              <button id="add-sound-btn" class="btn-add-sound" style="flex:1">
+                <i class="fas fa-plus"></i> Tambah Slot
+              </button>
+              <button id="upload-sound-trigger" class="btn-upload-sound" style="flex:1">
+                <i class="fas fa-upload"></i> Upload File
+              </button>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -175,6 +180,35 @@
           </button>
           <button class="btn-danger" id="confirm-delete-timer">
             Hapus Permanen
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload Sound Modal -->
+    <div class="modal-overlay" id="modal-upload-sound">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Upload File Suara</h2>
+          <p>Pilih file audio (mp3, wav, mpeg, mov) untuk ditambahkan ke daftar.</p>
+        </div>
+        <div class="modal-body">
+          <div class="upload-area" id="upload-drop-zone">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Klik atau Seret file ke sini</p>
+            <input type="file" id="sound-file-input" accept="audio/*,video/*" hidden />
+          </div>
+          <div id="upload-file-info" class="upload-file-info hidden">
+            <i class="fas fa-file-audio"></i>
+            <span id="selected-file-name">filename.mp3</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="app.closeModal('upload-sound')">
+            Batal
+          </button>
+          <button class="btn-primary" id="confirm-upload-btn" disabled>
+            Simpan ke Assets
           </button>
         </div>
       </div>

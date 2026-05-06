@@ -218,6 +218,9 @@ class App {
       "Nuclear Alarm.mov",
       "War Siren.mpeg",
     ];
+    this.customAssets = [];
+    this.initDatabase().then(() => this.fetchAssets());
+    
     this.timerToDelete = null;
     this.isAutoMode = localStorage.getItem("timerAutoMode") === "true";
     this.currentView = "";
@@ -262,6 +265,36 @@ class App {
     document
       .getElementById("confirm-quick-edit")
       .addEventListener("click", () => this.saveQuickEdit());
+
+    // Upload feature listeners
+    document
+      .getElementById("upload-sound-trigger")
+      .addEventListener("click", () => this.openModal("upload-sound"));
+    
+    const dropZone = document.getElementById("upload-drop-zone");
+    const fileInput = document.getElementById("sound-file-input");
+    
+    dropZone.addEventListener("click", () => fileInput.click());
+    dropZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropZone.classList.add("dragover");
+    });
+    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("dragover"));
+    dropZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropZone.classList.remove("dragover");
+      if (e.dataTransfer.files.length) {
+        this.handleFileSelection(e.dataTransfer.files[0]);
+      }
+    });
+    
+    fileInput.addEventListener("change", (e) => {
+      if (e.target.files.length) {
+        this.handleFileSelection(e.target.files[0]);
+      }
+    });
+
+    document.getElementById("confirm-upload-btn").addEventListener("click", () => this.saveUploadedFile());
 
     // Initial Routing
     if (!location.hash) location.hash = "#home";
@@ -481,10 +514,14 @@ class App {
     const div = document.createElement("div");
     div.className = "sound-item";
 
-    const optionsHtml = this.availableAssets
+    const allAssets = [...this.availableAssets, ...this.customAssets.map(a => a.name)];
+    
+    const optionsHtml = allAssets
       .map(
-        (file) =>
-          `<option value="${file}" ${data && data.filename === file ? "selected" : ""}>${file}</option>`,
+        (file) => {
+          const isCustom = this.customAssets.find(ca => ca.name === file);
+          return `<option value="${file}" ${data && data.filename === file ? "selected" : ""}>${file} ${isCustom ? "(Uploaded)" : ""}</option>`;
+        }
       )
       .join("");
 
@@ -531,7 +568,11 @@ class App {
 
     div.querySelector(".btn-preview-sound").addEventListener("click", () => {
       const file = div.querySelector(".snd-file").value;
-      if (file) new Audio(`assets/${file}`).play().catch(console.warn);
+      if (file) {
+        const custom = this.customAssets.find(a => a.name === file);
+        const url = custom ? custom.url : `assets/${file}`;
+        new Audio(url).play().catch(console.warn);
+      }
     });
 
     div.querySelector(".btn-remove-sound").addEventListener("click", () => {
@@ -558,11 +599,13 @@ class App {
       const type = row.querySelector(".snd-type").value;
       const time = parseInt(row.querySelector(".snd-time").value) || 0;
       if (filename) {
+        const custom = this.customAssets.find(a => a.name === filename);
+        const url = custom ? custom.url : `assets/${filename}`;
         timer.sounds.push({
           filename,
           type,
           time,
-          audio: new Audio(`assets/${filename}`),
+          audio: new Audio(url),
           played: false,
         });
       }
@@ -643,6 +686,107 @@ class App {
     this.selectedTimer.remainingSeconds = totalSecs;
     this.selectedTimer.updateDisplay();
     this.closeModal("quick-edit");
+  }
+
+  handleFileSelection(file) {
+    this.selectedUploadFile = file;
+    const info = document.getElementById("upload-file-info");
+    const nameSpan = document.getElementById("selected-file-name");
+    const confirmBtn = document.getElementById("confirm-upload-btn");
+
+    nameSpan.textContent = file.name;
+    info.classList.remove("hidden");
+    confirmBtn.disabled = false;
+  }
+
+  async saveUploadedFile() {
+    if (!this.selectedUploadFile) return;
+
+    const file = this.selectedUploadFile;
+    const confirmBtn = document.getElementById("confirm-upload-btn");
+    confirmBtn.disabled = true;
+
+    try {
+      // Save to IndexedDB
+      await this.saveToDB(file);
+      
+      // Refresh assets list
+      await this.fetchAssets();
+      
+      alert(`Berhasil! File "${file.name}" kini tersimpan secara permanen di browser ini.`);
+    } catch (error) {
+      console.error("Database storage failed:", error);
+      alert("Gagal menyimpan file ke database lokal.");
+    } finally {
+      confirmBtn.disabled = false;
+    }
+
+    // Refresh current settings if open
+    if (this.activeTimerForConfig) {
+      this.openSettings(this.activeTimerForConfig);
+    }
+
+    this.closeModal("upload-sound");
+    
+    // Reset upload modal
+    document.getElementById("upload-file-info").classList.add("hidden");
+    document.getElementById("confirm-upload-btn").disabled = true;
+    this.selectedUploadFile = null;
+  }
+
+  // --- IndexedDB Management ---
+  
+  initDatabase() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open("TimerLombaDB", 1);
+      
+      request.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains("sounds")) {
+          db.createObjectStore("sounds", { keyPath: "name" });
+        }
+      };
+
+      request.onsuccess = (e) => {
+        this.db = e.target.result;
+        resolve();
+      };
+
+      request.onerror = (e) => reject(e.target.error);
+    });
+  }
+
+  saveToDB(file) {
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(["sounds"], "readwrite");
+      const store = transaction.objectStore("sounds");
+      const request = store.put({ name: file.name, data: file });
+      
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async fetchAssets() {
+    return new Promise((resolve) => {
+      const transaction = this.db.transaction(["sounds"], "readonly");
+      const store = transaction.objectStore("sounds");
+      const request = store.getAll();
+
+      request.onsuccess = () => {
+        const dbSounds = request.result;
+        this.customAssets = dbSounds.map(s => ({
+          name: s.name,
+          url: URL.createObjectURL(s.data)
+        }));
+        resolve();
+      };
+
+      request.onerror = () => {
+        console.warn("Could not read from IndexedDB");
+        resolve();
+      };
+    });
   }
 }
 
