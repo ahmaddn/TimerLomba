@@ -21,7 +21,12 @@ class Timer {
     div.innerHTML = `
             <div class="timer-info">
                 <h2>${this.title}</h2>
-                <div class="time-display">00:00:00</div>
+                <div class="time-display-wrapper">
+                    <div class="time-display">00:00:00</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar"></div>
+                    </div>
+                </div>
             </div>
             <div class="timer-actions">
                 <button class="btn-circle delete-btn btn-delete-timer" title="Hapus Timer">
@@ -37,9 +42,6 @@ class Timer {
                     <i class="fas fa-play play-icon"></i>
                     <i class="fas fa-pause pause-icon hidden"></i>
                 </button>
-            </div>
-            <div class="progress-bar-container">
-                <div class="progress-bar"></div>
             </div>
         `;
 
@@ -169,9 +171,7 @@ class Timer {
     this.checkSounds(this.totalSeconds, true);
 
     if (app.isAutoMode) {
-      setTimeout(() => {
-        app.startNextTimer(this.id);
-      }, 1500);
+      app.startNextTimer(this.id);
     }
   }
 
@@ -296,12 +296,6 @@ class App {
     if (viewName === "home" || viewName === "petunjuk")
       headerToggle.style.visibility = "hidden";
     else headerToggle.style.visibility = "visible";
-
-    // Ensure footer is visible
-    const footer = document.getElementById("app-footer");
-    if (footer) {
-      footer.style.display = "block";
-    }
 
     if (viewName === "home") {
       container.innerHTML = document.getElementById("template-home").innerHTML;
@@ -441,6 +435,7 @@ class App {
     const nextView = viewMapping[nextTimer.id] || "dashboard";
 
     if (this.currentView === "dashboard") {
+      this.selectTimer(nextTimer);
       nextTimer.start();
     } else {
       localStorage.setItem("timerAutoStart", "true");
