@@ -9,6 +9,7 @@ class Timer {
     this.isRunning = false;
     this.interval = null;
     this.sounds = []; // Array of { filename, type, time, audio, played }
+    this.customMessage = ""; // Custom sentence at the bottom
 
     this.dom = this.createDOM();
     this.updateDisplay();
@@ -45,6 +46,9 @@ class Timer {
                     <i class="fas fa-play play-icon"></i>
                     <i class="fas fa-pause pause-icon hidden"></i>
                 </button>
+            </div>
+            <div class="timer-footer ${this.customMessage ? "" : "hidden"}">
+                <p class="custom-message-text">${this.customMessage}</p>
             </div>
         `;
 
@@ -206,11 +210,7 @@ class Timer {
 class App {
   constructor() {
     window.app = this;
-    this.timers = [
-      new Timer(1, "Persiapan", 5),
-      new Timer(2, "Waktu Lomba", 45),
-      new Timer(3, "Evaluasi Peserta dan Persiapan Unit", 10),
-    ];
+    this.timers = [];
     this.availableAssets = [
       "Announcement.mpeg",
       "Nuclear Alarm.mov",
@@ -218,7 +218,26 @@ class App {
       "Social Credit Alert.mp3",
     ];
     this.customAssets = [];
-    this.initDatabase().then(() => this.fetchAssets());
+    this.initDatabase().then(() => {
+      this.fetchAssets().then(() => {
+        this.loadTimersFromStorage();
+        if (this.timers.length === 0) {
+          this.timers = [
+            new Timer(1, "Persiapan", 5),
+            new Timer(2, "Waktu Lomba", 45),
+            new Timer(3, "Evaluasi Peserta dan Persiapan Unit", 10),
+          ];
+        }
+        if (this.currentView === "dashboard") {
+          this.renderView("dashboard");
+        }
+        
+        // Finalize initialization after data is ready
+        this.init();
+        if (!location.hash) location.hash = "#home";
+        else this.handleRouting();
+      });
+    });
 
     this.timerToDelete = null;
     this.isAutoMode = localStorage.getItem("timerAutoMode") === "true";
@@ -226,7 +245,6 @@ class App {
     this.selectedTimer = null;
 
     window.addEventListener("hashchange", () => this.handleRouting());
-    this.init();
   }
 
   init() {
@@ -299,9 +317,7 @@ class App {
       .getElementById("confirm-upload-btn")
       .addEventListener("click", () => this.saveUploadedFile());
 
-    // Initial Routing
-    if (!location.hash) location.hash = "#home";
-    else this.handleRouting();
+    // Initial Routing moved to constructor's async block
   }
 
   handleRouting() {
@@ -445,6 +461,7 @@ class App {
     // Reset and Close
     titleInput.value = "";
     durationInput.value = "5";
+    this.saveTimersToStorage();
     this.closeModal("add-timer");
   }
 
@@ -464,6 +481,7 @@ class App {
     }
 
     this.timerToDelete = null;
+    this.saveTimersToStorage();
     this.closeModal("delete-confirm");
   }
 
@@ -498,6 +516,7 @@ class App {
     document.getElementById("cfg-hours").value = h;
     document.getElementById("cfg-mins").value = m;
     document.getElementById("cfg-secs").value = s;
+    document.getElementById("cfg-message").value = timer.customMessage || "";
 
     const soundList = document.getElementById("sound-list");
     soundList.innerHTML = "";
@@ -597,6 +616,18 @@ class App {
     timer.remainingSeconds = timer.totalSeconds;
     timer.updateDisplay();
 
+    timer.customMessage = document.getElementById("cfg-message").value.trim();
+    const footer = timer.dom.querySelector(".timer-footer");
+    const msgText = timer.dom.querySelector(".custom-message-text");
+    if (footer && msgText) {
+      msgText.textContent = timer.customMessage;
+      if (timer.customMessage) {
+        footer.classList.remove("hidden");
+      } else {
+        footer.classList.add("hidden");
+      }
+    }
+
     timer.sounds = [];
     document.querySelectorAll(".sound-item").forEach((row) => {
       const filename = row.querySelector(".snd-file").value;
@@ -615,6 +646,7 @@ class App {
       }
     });
 
+    this.saveTimersToStorage();
     this.closeSettings();
   }
   selectTimer(timer) {
@@ -689,7 +721,64 @@ class App {
     this.selectedTimer.totalSeconds = totalSecs;
     this.selectedTimer.remainingSeconds = totalSecs;
     this.selectedTimer.updateDisplay();
+    this.saveTimersToStorage();
     this.closeModal("quick-edit");
+  }
+
+  // --- Persistence Management ---
+
+  saveTimersToStorage() {
+    const data = this.timers.map((t) => ({
+      id: t.id,
+      title: t.title,
+      totalSeconds: t.totalSeconds,
+      customMessage: t.customMessage,
+      sounds: t.sounds.map((s) => ({
+        filename: s.filename,
+        type: s.type,
+        time: s.time,
+      })),
+    }));
+    localStorage.setItem("timerData", JSON.stringify(data));
+  }
+
+  loadTimersFromStorage() {
+    const saved = localStorage.getItem("timerData");
+    if (!saved) return;
+
+    try {
+      const data = JSON.parse(saved);
+      this.timers = data.map((d) => {
+        const t = new Timer(d.id, d.title, d.totalSeconds / 60);
+        t.totalSeconds = d.totalSeconds;
+        t.remainingSeconds = d.totalSeconds;
+        t.customMessage = d.customMessage || "";
+        
+        // Restore custom message to DOM
+        const footer = t.dom.querySelector(".timer-footer");
+        const msgText = t.dom.querySelector(".custom-message-text");
+        if (footer && msgText) {
+          msgText.textContent = t.customMessage;
+          if (t.customMessage) footer.classList.remove("hidden");
+        }
+
+        t.sounds = d.sounds.map((s) => {
+          const custom = this.customAssets.find((a) => a.name === s.filename);
+          const url = custom ? custom.url : `assets/${s.filename}`;
+          return {
+            filename: s.filename,
+            type: s.type,
+            time: s.time,
+            audio: new Audio(url),
+            played: false,
+          };
+        });
+        t.updateDisplay();
+        return t;
+      });
+    } catch (e) {
+      console.error("Failed to load timers from storage:", e);
+    }
   }
 
   handleFileSelection(file) {

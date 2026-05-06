@@ -161,10 +161,12 @@ body:not(.home-active) {
 
 .timer-info {
   flex: 1;
-  min-width: 0; /* Allow shrinking */
+  min-width: 0;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
+  text-align: center;
 }
 
 .timer-actions {
@@ -194,15 +196,32 @@ body:not(.home-active) {
   padding: 2.5rem;
   border-radius: 30px;
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  gap: 2rem;
+  gap: 1rem;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   cursor: pointer;
   position: relative;
-  min-height: 140px;
+  min-height: 200px;
+  text-align: center;
+}
+
+.timer-footer {
+  width: 100%;
+  margin-top: -0.5rem;
+  padding: 0;
+  text-align: center;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.custom-message-text {
+  font-weight: 800;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-size: 1.1rem;
 }
 
 .timer-card::after {
@@ -303,6 +322,11 @@ body:not(.home-active) {
 
 .timer-list[data-focused="true"] .btn-circle i {
   font-size: 2.25rem;
+}
+
+.timer-list[data-focused="true"] .custom-message-text {
+  font-size: 2.5rem;
+  margin-top: 2rem;
 }
 
 .time-display-wrapper {
