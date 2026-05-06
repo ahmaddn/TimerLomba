@@ -221,6 +221,9 @@ class App {
       "Nuclear Alarm.mov",
       "War Siren.mpeg",
       "Social Credit Alert.mp3",
+      "MANUK DADALI.mpeg",
+      "MARS SMK BISA 2025.mpeg",
+      "Mojang Priangan.mpeg",
     ];
     this.customAssets = [];
     this.initDatabase().then(() => {
@@ -236,7 +239,7 @@ class App {
         if (this.currentView === "dashboard") {
           this.renderView("dashboard");
         }
-        
+
         // Finalize initialization after data is ready
         this.init();
         if (!location.hash) location.hash = "#home";
@@ -821,7 +824,7 @@ class App {
         t.totalSeconds = d.totalSeconds;
         t.remainingSeconds = d.totalSeconds;
         t.customMessage = d.customMessage || "";
-        
+
         // Restore custom message to DOM
         const footer = t.dom.querySelector(".timer-footer");
         const msgText = t.dom.querySelector(".custom-message-text");
