@@ -251,6 +251,51 @@ body:not(.home-active) {
   background: var(--accent);
 }
 
+/* --- Warning & Alert Effects --- */
+
+.warning-pulse {
+  animation: warningPulse 0.5s infinite alternate;
+  border-color: var(--accent) !important;
+  z-index: 10;
+}
+
+@keyframes warningPulse {
+  from {
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+    transform: scale(1.01);
+  }
+  to {
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.5);
+    transform: scale(1.03);
+  }
+}
+
+/* Full Screen Alert Animation */
+.screen-alert::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow: inset 0 0 100px rgba(239, 68, 68, 0.5);
+  animation: screenAlertPulse 0.5s infinite alternate;
+}
+
+@keyframes screenAlertPulse {
+  from {
+    box-shadow: inset 0 0 60px rgba(239, 68, 68, 0.3);
+    background-color: rgba(239, 68, 68, 0.05);
+  }
+  to {
+    box-shadow: inset 0 0 200px rgba(239, 68, 68, 0.7);
+    background-color: rgba(239, 68, 68, 0.15);
+  }
+}
+
+
 .timer-info h2 {
   font-size: 0.85rem;
   color: var(--accent);

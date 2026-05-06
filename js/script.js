@@ -146,6 +146,8 @@ class Timer {
     this.isRunning = false;
     clearInterval(this.interval);
     this.dom.classList.remove("active-timer");
+    this.dom.classList.remove("warning-pulse");
+    document.body.classList.remove("screen-alert");
     this.dom.querySelector(".play-icon")?.classList.remove("hidden");
     this.dom.querySelector(".pause-icon")?.classList.add("hidden");
 
@@ -158,6 +160,7 @@ class Timer {
     this.pause();
     this.remainingSeconds = this.totalSeconds;
     this.dom.classList.remove("warning-pulse");
+    document.body.classList.remove("screen-alert");
     this.updateDisplay();
     this.sounds.forEach((s) => {
       s.played = false;
@@ -171,6 +174,7 @@ class Timer {
   complete() {
     this.pause();
     this.dom.classList.remove("warning-pulse");
+    document.body.classList.remove("screen-alert");
     this.sounds.forEach((s) => {
       if (s.audio && s.type !== "end") {
         s.audio.pause();
@@ -201,6 +205,7 @@ class Timer {
           s.audio.currentTime = 0;
           s.audio.play().catch(console.warn);
           this.dom.classList.add("warning-pulse");
+          document.body.classList.add("screen-alert");
         }
       }
     });
