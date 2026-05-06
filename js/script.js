@@ -57,24 +57,18 @@ class Timer {
       }
     });
 
-    div
-      .querySelector(".reset-btn")
-      .addEventListener("click", (e) => {
-        e.stopPropagation();
-        this.reset();
-      });
-    div
-      .querySelector(".settings-btn")
-      .addEventListener("click", (e) => {
-        e.stopPropagation();
-        app.openSettings(this);
-      });
-    div
-      .querySelector(".play-btn")
-      .addEventListener("click", (e) => {
-        e.stopPropagation();
-        this.toggle();
-      });
+    div.querySelector(".reset-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.reset();
+    });
+    div.querySelector(".settings-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      app.openSettings(this);
+    });
+    div.querySelector(".play-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.toggle();
+    });
 
     return div;
   }
@@ -99,7 +93,11 @@ class Timer {
     }
 
     // Sync with Dashboard Right Panel if this is the selected timer
-    if (window.app && window.app.selectedTimer === this && window.app.currentView === "dashboard") {
+    if (
+      window.app &&
+      window.app.selectedTimer === this &&
+      window.app.currentView === "dashboard"
+    ) {
       window.app.updateRightPanelDisplay();
     }
   }
@@ -217,10 +215,11 @@ class App {
       "Announcement.mpeg",
       "Nuclear Alarm.mov",
       "War Siren.mpeg",
+      "Social Credit Alert.mp3",
     ];
     this.customAssets = [];
     this.initDatabase().then(() => this.fetchAssets());
-    
+
     this.timerToDelete = null;
     this.isAutoMode = localStorage.getItem("timerAutoMode") === "true";
     this.currentView = "";
@@ -270,16 +269,18 @@ class App {
     document
       .getElementById("upload-sound-trigger")
       .addEventListener("click", () => this.openModal("upload-sound"));
-    
+
     const dropZone = document.getElementById("upload-drop-zone");
     const fileInput = document.getElementById("sound-file-input");
-    
+
     dropZone.addEventListener("click", () => fileInput.click());
     dropZone.addEventListener("dragover", (e) => {
       e.preventDefault();
       dropZone.classList.add("dragover");
     });
-    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("dragover"));
+    dropZone.addEventListener("dragleave", () =>
+      dropZone.classList.remove("dragover"),
+    );
     dropZone.addEventListener("drop", (e) => {
       e.preventDefault();
       dropZone.classList.remove("dragover");
@@ -287,14 +288,16 @@ class App {
         this.handleFileSelection(e.dataTransfer.files[0]);
       }
     });
-    
+
     fileInput.addEventListener("change", (e) => {
       if (e.target.files.length) {
         this.handleFileSelection(e.target.files[0]);
       }
     });
 
-    document.getElementById("confirm-upload-btn").addEventListener("click", () => this.saveUploadedFile());
+    document
+      .getElementById("confirm-upload-btn")
+      .addEventListener("click", () => this.saveUploadedFile());
 
     // Initial Routing
     if (!location.hash) location.hash = "#home";
@@ -514,15 +517,16 @@ class App {
     const div = document.createElement("div");
     div.className = "sound-item";
 
-    const allAssets = [...this.availableAssets, ...this.customAssets.map(a => a.name)];
-    
+    const allAssets = [
+      ...this.availableAssets,
+      ...this.customAssets.map((a) => a.name),
+    ];
+
     const optionsHtml = allAssets
-      .map(
-        (file) => {
-          const isCustom = this.customAssets.find(ca => ca.name === file);
-          return `<option value="${file}" ${data && data.filename === file ? "selected" : ""}>${file} ${isCustom ? "(Uploaded)" : ""}</option>`;
-        }
-      )
+      .map((file) => {
+        const isCustom = this.customAssets.find((ca) => ca.name === file);
+        return `<option value="${file}" ${data && data.filename === file ? "selected" : ""}>${file} ${isCustom ? "(Uploaded)" : ""}</option>`;
+      })
       .join("");
 
     div.innerHTML = `
@@ -569,7 +573,7 @@ class App {
     div.querySelector(".btn-preview-sound").addEventListener("click", () => {
       const file = div.querySelector(".snd-file").value;
       if (file) {
-        const custom = this.customAssets.find(a => a.name === file);
+        const custom = this.customAssets.find((a) => a.name === file);
         const url = custom ? custom.url : `assets/${file}`;
         new Audio(url).play().catch(console.warn);
       }
@@ -599,7 +603,7 @@ class App {
       const type = row.querySelector(".snd-type").value;
       const time = parseInt(row.querySelector(".snd-time").value) || 0;
       if (filename) {
-        const custom = this.customAssets.find(a => a.name === filename);
+        const custom = this.customAssets.find((a) => a.name === filename);
         const url = custom ? custom.url : `assets/${filename}`;
         timer.sounds.push({
           filename,
@@ -709,11 +713,13 @@ class App {
     try {
       // Save to IndexedDB
       await this.saveToDB(file);
-      
+
       // Refresh assets list
       await this.fetchAssets();
-      
-      alert(`Berhasil! File "${file.name}" kini tersimpan secara permanen di browser ini.`);
+
+      alert(
+        `Berhasil! File "${file.name}" kini tersimpan secara permanen di browser ini.`,
+      );
     } catch (error) {
       console.error("Database storage failed:", error);
       alert("Gagal menyimpan file ke database lokal.");
@@ -727,7 +733,7 @@ class App {
     }
 
     this.closeModal("upload-sound");
-    
+
     // Reset upload modal
     document.getElementById("upload-file-info").classList.add("hidden");
     document.getElementById("confirm-upload-btn").disabled = true;
@@ -735,11 +741,11 @@ class App {
   }
 
   // --- IndexedDB Management ---
-  
+
   initDatabase() {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open("TimerLombaDB", 1);
-      
+
       request.onupgradeneeded = (e) => {
         const db = e.target.result;
         if (!db.objectStoreNames.contains("sounds")) {
@@ -761,7 +767,7 @@ class App {
       const transaction = this.db.transaction(["sounds"], "readwrite");
       const store = transaction.objectStore("sounds");
       const request = store.put({ name: file.name, data: file });
-      
+
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
@@ -775,9 +781,9 @@ class App {
 
       request.onsuccess = () => {
         const dbSounds = request.result;
-        this.customAssets = dbSounds.map(s => ({
+        this.customAssets = dbSounds.map((s) => ({
           name: s.name,
-          url: URL.createObjectURL(s.data)
+          url: URL.createObjectURL(s.data),
         }));
         resolve();
       };
