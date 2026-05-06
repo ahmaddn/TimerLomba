@@ -1236,6 +1236,45 @@ body:not(.home-active) {
     font-size: 2.5rem;
   }
 }
+.custom-sounds-manage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.manage-sound-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.btn-delete-asset {
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.btn-delete-asset:hover {
+  background: #fff1f2;
+  transform: scale(1.1);
+}
 
 /* Large Screens (Smart TV) */
 @media (min-width: 2000px) {

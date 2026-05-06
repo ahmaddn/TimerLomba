@@ -507,6 +507,7 @@ class App {
 
   openSettings(timer) {
     this.activeTimerForConfig = timer;
+    document.getElementById("cfg-title-input").value = timer.title;
     document.getElementById("config-title").textContent =
       `Pengaturan: ${timer.title}`;
 
@@ -524,7 +525,59 @@ class App {
     if (timer.sounds.length === 0) this.addSoundRow();
     else timer.sounds.forEach((sound) => this.addSoundRow(sound));
 
+    this.renderCustomSoundManager();
     this.openModal("settings");
+  }
+
+  renderCustomSoundManager() {
+    const list = document.getElementById("custom-sounds-manage-list");
+    const section = document.getElementById("manage-custom-sounds-section");
+
+    if (this.customAssets.length === 0) {
+      section.style.display = "none";
+      return;
+    }
+
+    section.style.display = "block";
+    list.innerHTML = "";
+
+    this.customAssets.forEach((asset) => {
+      const div = document.createElement("div");
+      div.className = "manage-sound-item";
+      div.innerHTML = `
+        <span>${asset.name}</span>
+        <button class="btn-delete-asset" title="Hapus Permanen">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      `;
+      div.querySelector(".btn-delete-asset").addEventListener("click", () => {
+        if (confirm(`Hapus suara "${asset.name}" secara permanen?`)) {
+          this.deleteCustomAsset(asset.name);
+        }
+      });
+      list.appendChild(div);
+    });
+  }
+
+  async deleteCustomAsset(name) {
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(["sounds"], "readwrite");
+      const store = transaction.objectStore("sounds");
+      const request = store.delete(name);
+
+      request.onsuccess = async () => {
+        await this.fetchAssets();
+        this.renderCustomSoundManager();
+        // Refresh sound selection rows to remove deleted asset
+        const selects = document.querySelectorAll(".snd-file");
+        selects.forEach((select) => {
+          const opt = Array.from(select.options).find((o) => o.value === name);
+          if (opt) opt.remove();
+        });
+        resolve();
+      };
+      request.onerror = () => reject(request.error);
+    });
   }
 
   closeSettings() {
@@ -608,6 +661,16 @@ class App {
   saveConfig() {
     const timer = this.activeTimerForConfig;
     if (!timer) return;
+
+    const newTitle = document.getElementById("cfg-title-input").value.trim();
+    if (newTitle) {
+      timer.title = newTitle;
+      timer.dom.querySelector("h2").textContent = newTitle;
+      // If selected, update right panel
+      if (this.selectedTimer === timer) {
+        document.getElementById("selected-timer-info").textContent = newTitle;
+      }
+    }
 
     const h = parseInt(document.getElementById("cfg-hours").value) || 0;
     const m = parseInt(document.getElementById("cfg-mins").value) || 0;

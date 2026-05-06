@@ -79,6 +79,10 @@
         </div>
         <div class="modal-body">
           <div class="setting-row">
+            <label>Nama Timer / Lomba</label>
+            <input type="text" id="cfg-title-input" style="width:100%; padding:0.8rem; border-radius:12px; border:1px solid var(--border-color);" />
+          </div>
+          <div class="setting-row">
             <label>Setel Durasi</label>
             <div class="duration-inputs">
               <div class="duration-box">
@@ -119,6 +123,14 @@
               <button id="upload-sound-trigger" class="btn-upload-sound" style="flex:1">
                 <i class="fas fa-upload"></i> Upload File
               </button>
+            </div>
+          </div>
+
+          <!-- Manage Custom Sounds Section -->
+          <div class="setting-row" id="manage-custom-sounds-section">
+            <label>Kelola File Suara Anda</label>
+            <div id="custom-sounds-manage-list" class="custom-sounds-manage-list">
+              <!-- Custom sounds will be listed here -->
             </div>
           </div>
         </div>
