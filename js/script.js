@@ -118,15 +118,12 @@ class Timer {
     this.dom.querySelector(".play-icon")?.classList.add("hidden");
     this.dom.querySelector(".pause-icon")?.classList.remove("hidden");
 
+    const elapsed = this.totalSeconds - this.remainingSeconds;
     this.sounds.forEach((s) => {
-      if (s.audio) {
-        if (s.type === "loop") {
-          s.audio.loop = true;
-          s.audio.play().catch(console.warn);
-        } else if (s.type === "start" && s.time > 0) {
-          s.audio.currentTime = 0;
-          s.audio.play().catch(console.warn);
-        }
+      if (s.type === "loop") {
+        app.playSound(s, true);
+      } else if (s.type === "start" && s.time > 0 && elapsed < s.time) {
+        app.playSound(s, true);
       }
     });
 
@@ -152,7 +149,7 @@ class Timer {
     this.dom.querySelector(".pause-icon")?.classList.add("hidden");
 
     this.sounds.forEach((s) => {
-      if (s.audio) s.audio.pause();
+      app.stopSound(s);
     });
   }
 
@@ -164,10 +161,8 @@ class Timer {
     this.updateDisplay();
     this.sounds.forEach((s) => {
       s.played = false;
-      if (s.audio) {
-        s.audio.pause();
-        s.audio.currentTime = 0;
-      }
+      s.pauseOffset = 0;
+      app.stopSound(s);
     });
   }
 
@@ -176,9 +171,9 @@ class Timer {
     this.dom.classList.remove("warning-pulse");
     document.body.classList.remove("screen-alert");
     this.sounds.forEach((s) => {
-      if (s.audio && s.type !== "end") {
-        s.audio.pause();
-        s.audio.currentTime = 0;
+      if (s.type !== "end") {
+        s.pauseOffset = 0;
+        app.stopSound(s);
       }
     });
     this.checkSounds(this.totalSeconds, true);
@@ -195,15 +190,14 @@ class Timer {
 
       if (s.type === "start") {
         if (elapsed >= s.time) {
-          s.audio.pause();
-          s.audio.currentTime = 0;
+          app.stopSound(s);
+          s.pauseOffset = 0;
         }
       }
 
       if (s.type === "end") {
         if (this.remainingSeconds === s.time) {
-          s.audio.currentTime = 0;
-          s.audio.play().catch(console.warn);
+          app.playSound(s, true);
           this.dom.classList.add("warning-pulse");
           document.body.classList.add("screen-alert");
         }
@@ -216,6 +210,8 @@ class App {
   constructor() {
     window.app = this;
     this.timers = [];
+    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    this.audioBuffers = new Map(); // filename -> AudioBuffer
     this.availableAssets = [
       "Announcement.mpeg",
       "Nuclear Alarm.mov",
@@ -709,13 +705,25 @@ class App {
       if (filename) {
         const custom = this.customAssets.find((a) => a.name === filename);
         const url = custom ? custom.url : `assets/${filename}`;
-        timer.sounds.push({
+        
+        const soundData = {
           filename,
           type,
           time,
-          audio: new Audio(url),
+          audio: new Audio(url), // Keep for simple play/preview
+          buffer: null,
+          source: null,
+          startTime: 0,
+          pauseOffset: 0,
           played: false,
+        };
+
+        // Preload buffer for gapless loop
+        this.getAudioBuffer(url).then(buf => {
+          soundData.buffer = buf;
         });
+
+        timer.sounds.push(soundData);
       }
     });
 
@@ -798,6 +806,62 @@ class App {
     this.closeModal("quick-edit");
   }
 
+  async getAudioBuffer(url) {
+    if (this.audioBuffers.has(url)) return this.audioBuffers.get(url);
+    try {
+      const response = await fetch(url);
+      const arrayBuffer = await response.arrayBuffer();
+      const audioBuffer = await this.audioCtx.decodeAudioData(arrayBuffer);
+      this.audioBuffers.set(url, audioBuffer);
+      return audioBuffer;
+    } catch (e) {
+      console.warn("Failed to load audio buffer:", url, e);
+      return null;
+    }
+  }
+
+  // Helper to play/pause gapless sounds
+  playSound(sound, loop = false) {
+    if (!sound.buffer) {
+      // Fallback to HTMLAudio if buffer not ready
+      sound.audio.loop = loop;
+      sound.audio.play().catch(console.warn);
+      return;
+    }
+
+    if (this.audioCtx.state === "suspended") {
+      this.audioCtx.resume();
+    }
+
+    // Stop existing if any
+    if (sound.source) {
+      try { sound.source.stop(); } catch(e) {}
+    }
+
+    sound.source = this.audioCtx.createBufferSource();
+    sound.source.buffer = sound.buffer;
+    sound.source.loop = loop;
+    sound.source.connect(this.audioCtx.destination);
+
+    const offset = sound.pauseOffset % sound.buffer.duration;
+    sound.source.start(0, offset);
+    sound.startTime = this.audioCtx.currentTime - offset;
+  }
+
+  stopSound(sound) {
+    if (sound.source) {
+      try {
+        sound.source.stop();
+        sound.pauseOffset = this.audioCtx.currentTime - sound.startTime;
+      } catch (e) {}
+      sound.source = null;
+    }
+    if (sound.audio) {
+      sound.audio.pause();
+      sound.audio.currentTime = 0;
+    }
+  }
+
   // --- Persistence Management ---
 
   saveTimersToStorage() {
@@ -838,13 +902,21 @@ class App {
         t.sounds = d.sounds.map((s) => {
           const custom = this.customAssets.find((a) => a.name === s.filename);
           const url = custom ? custom.url : `assets/${s.filename}`;
-          return {
+          const soundData = {
             filename: s.filename,
             type: s.type,
             time: s.time,
             audio: new Audio(url),
+            buffer: null,
+            source: null,
+            startTime: 0,
+            pauseOffset: 0,
             played: false,
           };
+          this.getAudioBuffer(url).then((buf) => {
+            soundData.buffer = buf;
+          });
+          return soundData;
         });
         t.updateDisplay();
         return t;
