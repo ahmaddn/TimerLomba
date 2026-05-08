@@ -10,6 +10,7 @@ class Timer {
     this.interval = null;
     this.sounds = []; // Array of { filename, type, time, audio, played }
     this.customMessage = ""; // Custom sentence at the bottom
+    this.history = []; // Array of { timestamp, timeString, remainingSeconds, type: 'manual'|'auto' }
 
     this.dom = this.createDOM();
     this.updateDisplay();
@@ -39,6 +40,9 @@ class Timer {
                 <button class="btn-circle reset-btn" title="Reset Waktu">
                     <i class="fas fa-redo"></i>
                 </button>
+                <button class="btn-circle record-btn" title="Simpan Waktu">
+                    <i class="fas fa-bookmark"></i>
+                </button>
                 <button class="btn-circle settings-btn" title="Pengaturan Suara & Durasi">
                     <i class="fas fa-cog"></i>
                 </button>
@@ -64,6 +68,10 @@ class Timer {
     div.querySelector(".reset-btn").addEventListener("click", (e) => {
       e.stopPropagation();
       this.reset();
+    });
+    div.querySelector(".record-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.recordTime();
     });
     div.querySelector(".settings-btn").addEventListener("click", (e) => {
       e.stopPropagation();
@@ -177,9 +185,39 @@ class Timer {
       }
     });
     this.checkSounds(this.totalSeconds, true);
+    this.recordTime("auto");
 
     if (app.isAutoMode) {
       app.startNextTimer(this.id);
+    }
+  }
+
+  recordTime(type = "manual") {
+    const h = Math.floor(this.remainingSeconds / 3600);
+    const m = Math.floor((this.remainingSeconds % 3600) / 60);
+    const s = this.remainingSeconds % 60;
+    const timeString = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+
+    const entry = {
+      timestamp: new Date().toLocaleTimeString(),
+      timeString,
+      remainingSeconds: this.remainingSeconds,
+      title: this.title,
+      type,
+    };
+
+    this.history.unshift(entry);
+    app.saveTimersToStorage();
+
+    if (app.selectedTimer === this && app.currentView === "dashboard") {
+      app.renderHistory();
+    }
+
+    // Visual feedback on button
+    const btn = this.dom.querySelector(".record-btn");
+    if (btn) {
+      btn.classList.add("btn-success-brief");
+      setTimeout(() => btn.classList.remove("btn-success-brief"), 1000);
     }
   }
 
@@ -366,6 +404,14 @@ class App {
     } else if (viewName === "petunjuk") {
       container.innerHTML =
         document.getElementById("template-petunjuk").innerHTML;
+    } else if (viewName === "history") {
+      container.innerHTML = document.getElementById("template-history").innerHTML;
+      this.renderGlobalHistory();
+      document.getElementById("clear-all-history-btn").addEventListener("click", () => {
+        if (confirm("Hapus seluruh catatan waktu dari semua timer?")) {
+          this.clearAllHistory();
+        }
+      });
     } else if (viewName === "dashboard") {
       container.innerHTML =
         document.getElementById("template-dashboard").innerHTML;
@@ -385,6 +431,37 @@ class App {
       startBtn.addEventListener("click", () => {
         if (this.selectedTimer) {
           this.selectedTimer.toggle();
+        }
+      });
+
+      const recordBtn = document.getElementById("picker-record-btn");
+      recordBtn.addEventListener("click", () => {
+        if (this.selectedTimer) {
+          this.selectedTimer.recordTime();
+        }
+      });
+
+      // Panel Tab Switching
+      document.getElementById("tab-controls-btn").addEventListener("click", () => {
+        document.getElementById("panel-controls").classList.remove("hidden");
+        document.getElementById("panel-history").classList.add("hidden");
+        document.getElementById("tab-controls-btn").classList.add("active");
+        document.getElementById("tab-history-btn").classList.remove("active");
+      });
+
+      document.getElementById("tab-history-btn").addEventListener("click", () => {
+        document.getElementById("panel-controls").classList.add("hidden");
+        document.getElementById("panel-history").classList.remove("hidden");
+        document.getElementById("tab-controls-btn").classList.remove("active");
+        document.getElementById("tab-history-btn").classList.add("active");
+        this.renderHistory();
+      });
+
+      document.getElementById("clear-history-btn").addEventListener("click", () => {
+        if (this.selectedTimer && confirm("Hapus semua history untuk timer ini?")) {
+          this.selectedTimer.history = [];
+          this.saveTimersToStorage();
+          this.renderHistory();
         }
       });
 
@@ -773,6 +850,77 @@ class App {
     }
   }
 
+  renderHistory() {
+    const list = document.getElementById("dashboard-history-list");
+    if (!list || !this.selectedTimer) return;
+
+    if (this.selectedTimer.history.length === 0) {
+      list.innerHTML = '<div class="empty-history">Belum ada waktu tersimpan</div>';
+      return;
+    }
+
+    list.innerHTML = this.selectedTimer.history
+      .map(
+        (entry) => `
+      <div class="history-item">
+        <div class="history-time">${entry.timeString}</div>
+        <div class="history-details">
+          <span class="history-tag ${entry.type}">${entry.type === "auto" ? "Otomatis" : "Manual"}</span>
+          <span class="history-timestamp">${entry.timestamp}</span>
+        </div>
+      </div>
+    `,
+      )
+      .join("");
+  }
+
+  renderGlobalHistory() {
+    const list = document.getElementById("global-history-list");
+    const emptyState = document.getElementById("history-empty-state");
+    if (!list) return;
+
+    // Aggregate all history from all timers
+    let allHistory = [];
+    this.timers.forEach((t) => {
+      t.history.forEach((h) => {
+        allHistory.push({ ...h, timerTitle: t.title });
+      });
+    });
+
+    // Sort by timestamp (assuming they are strings like "10:45:12 AM", this might be tricky)
+    // Actually, it's better to store a real Date object, but for now we'll just show them as they come (unshifted)
+    // The history is already unshifted (newest first) per timer. 
+    // Let's sort them if possible, or just flatten.
+    
+    if (allHistory.length === 0) {
+      list.innerHTML = "";
+      emptyState.classList.remove("hidden");
+      return;
+    }
+
+    emptyState.classList.add("hidden");
+    list.innerHTML = allHistory
+      .map(
+        (h) => `
+      <tr>
+        <td>${h.timestamp}</td>
+        <td><strong>${h.timerTitle}</strong></td>
+        <td class="font-mono" style="color:var(--accent); font-weight:700;">${h.timeString}</td>
+        <td><span class="history-tag ${h.type}">${h.type === "auto" ? "Otomatis" : "Manual"}</span></td>
+      </tr>
+    `,
+      )
+      .join("");
+  }
+
+  clearAllHistory() {
+    this.timers.forEach((t) => {
+      t.history = [];
+    });
+    this.saveTimersToStorage();
+    this.renderGlobalHistory();
+  }
+
   openQuickEdit() {
     if (!this.selectedTimer) return;
     const t = this.selectedTimer;
@@ -870,6 +1018,7 @@ class App {
       title: t.title,
       totalSeconds: t.totalSeconds,
       customMessage: t.customMessage,
+      history: t.history || [],
       sounds: t.sounds.map((s) => ({
         filename: s.filename,
         type: s.type,
@@ -890,6 +1039,7 @@ class App {
         t.totalSeconds = d.totalSeconds;
         t.remainingSeconds = d.totalSeconds;
         t.customMessage = d.customMessage || "";
+        t.history = d.history || [];
 
         // Restore custom message to DOM
         const footer = t.dom.querySelector(".timer-footer");

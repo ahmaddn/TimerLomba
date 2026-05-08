@@ -43,6 +43,7 @@
           <a href="#persiapan" class="tab" id="tab-persiapan">Persiapan</a>
           <a href="#lomba" class="tab" id="tab-lomba">Lomba</a>
           <a href="#evaluasi" class="tab" id="tab-evaluasi">Evaluasi</a>
+          <a href="#history" class="tab" id="tab-history">History</a>
           <a href="#petunjuk" class="tab" id="tab-petunjuk">Petunjuk</a>
         </nav>
       </header>
@@ -362,7 +363,12 @@
         </main>
         
         <aside class="dashboard-right-panel">
-          <div class="panel-content">
+          <div class="panel-tabs">
+            <button class="panel-tab active" id="tab-controls-btn">Kontrol</button>
+            <button class="panel-tab" id="tab-history-btn">History</button>
+          </div>
+          
+          <div class="panel-content" id="panel-controls">
             <div id="selected-timer-info" class="selected-timer-title">Pilih Timer</div>
             
             <button class="btn-add-timer-text" id="panel-add-timer-btn">
@@ -386,9 +392,25 @@
               </div>
             </div>
             
-            <button class="btn-main-action" id="picker-start-btn">
-              <i class="fas fa-play"></i> Mulai
-            </button>
+            <div class="dashboard-main-actions">
+              <button class="btn-main-action" id="picker-start-btn">
+                <i class="fas fa-play"></i> Mulai
+              </button>
+              <button class="btn-main-action btn-record" id="picker-record-btn" title="Simpan Waktu">
+                <i class="fas fa-bookmark"></i> Simpan
+              </button>
+            </div>
+          </div>
+
+          <div class="panel-content hidden" id="panel-history">
+            <div class="history-header">
+              <h3>Catatan Waktu</h3>
+              <button class="btn-clear-history" id="clear-history-btn">Hapus Semua</button>
+            </div>
+            <div class="history-list" id="dashboard-history-list">
+              <!-- History items injected here -->
+              <div class="empty-history">Belum ada waktu tersimpan</div>
+            </div>
           </div>
 
         </aside>
@@ -400,6 +422,38 @@
         <main class="timer-list" data-focused="true" id="focused-timer-list">
           <!-- Single timer injected here -->
         </main>
+      </div>
+    </template>
+
+    <template id="template-history">
+      <div class="history-view">
+        <div class="history-header-main">
+          <h2><i class="fas fa-history"></i> Log Waktu Lomba</h2>
+          <p>Daftar lengkap seluruh catatan waktu yang telah disimpan.</p>
+        </div>
+        <div class="history-table-container">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Waktu Real</th>
+                <th>Nama Timer</th>
+                <th>Sisa Waktu</th>
+                <th>Tipe</th>
+              </tr>
+            </thead>
+            <tbody id="global-history-list">
+              <!-- Rows injected here -->
+            </tbody>
+          </table>
+          <div id="history-empty-state" class="empty-history hidden">
+            Belum ada data waktu yang tercatat.
+          </div>
+        </div>
+        <div class="history-actions-main">
+          <button class="btn-danger" id="clear-all-history-btn">
+            <i class="fas fa-trash"></i> Hapus Semua Log
+          </button>
+        </div>
       </div>
     </template>
 
